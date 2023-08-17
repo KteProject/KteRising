@@ -1,0 +1,34 @@
+#It sets when lava will rise in Classic mode.(Applies to Trident, Elytra and Classic mode)
+classic-start-time: 600
+#It sets when lava will rise in Op mode.(Applies to TridentOp, ElytraOP and Op mode)
+op-start-time: 60
+#It sets the world size.
+world-size: 100
+#It writes when PvP will be enabled.
+pvp-allow: 80
+#It writes how often the lava will rise, in seconds.
+lava-delay: 1
+#It writes at which layer the lava will start to rise.
+lava-start-block: 10
+#Automatic server shutdown (if you turn this feature off, you will have to stop it yourself)
+server-stop: true
+#If you turn off AutoPickUp, the blocks you break will fall to the ground. This applies to gold and iron
+autopickup: true
+
+scoreboard:
+  scoreboard-enabled: true
+  scoreboard-title: "&6Kte Project"
+  #Max 15 Lines.
+  #If you write scores with the same name, only one of them is displayed, even if there is a space
+  #Placeholders won't work if you use this scoreboard! (Only %survival%,%lava%,%pvp%,%time%,%mode% these work.)
+  #If you want to placeholders to work you can use a different plugin.
+  scoreboard:
+    - '&7 '
+    - '&fSurvivor: &a%survivor%'
+    - '&6 '
+    - '&fLava: &a%lava%'
+    - '&fPvp: &a%pvp%'
+    - '&fTime: &a%time%'
+    - '&5 '
+    - '&fMode: &a%mode%'
+    - '&4 '
