@@ -1,9 +1,0 @@
-name: KteRising
-version: '${project.version}'
-main: com.kterising.KteRising
-api-version: '1.16'
-author: Ruby, Ben Lordlex, Kaan Flod
-softdepend: [PlaceholderAPI]
-commands:
-  kterising:
-    description: "Kte Rising Command"
