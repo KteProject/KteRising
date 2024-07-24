@@ -1,0 +1,55 @@
+#If you make a typo, the items will not be given or an error will occur!
+#Look Minecraft ids if you want to change the material! For example DIAMOND_PICKAXE. Do not try to enter as a number! For example 278(DIAMOND_PICKAXE)
+items:
+  pickaxe:
+    #Applies to all mods
+    name: "&6LavaRising"
+    material: NETHERITE_PICKAXE
+  food:
+    #Applies to all mods
+    name: "&6LavaRising"
+    material: COOKED_BEEF
+    #Applies to Classic, Elytra and Trident mode
+    amount: 16
+    #Applies to OP, ElytraOp and TridentOp mode
+    op-amount: 64
+  oak:
+    #Applies to all mods
+    material: OAK_LOG
+    #Applies to Classic, Elytra and Trident mode
+    amount: 16
+    #Applies to OP, ElytraOp and TridentOp mode
+    op-amount: 64
+  elytra:
+    #Applies to Elytra and ElytraOP mode
+    name: "&6LavaRising"
+    material: ELYTRA
+    amount: 1
+  firework:
+    #Applies to Elytra and ElytraOP mode
+    material: FIREWORK_ROCKET
+    #Applies to Elytra mode
+    amount: 6
+    #Applies to ElytraOp mode
+    op-amount: 64
+  trident:
+    #Applies to Trident and TridentOp mode
+    material: TRIDENT
+    riptide-name: "&3Riptide"
+    loyalty-name: "&3Loyalty"
+  bow:
+    #Applies to UltraOp mode
+    material: BOW
+    bow-name: "&6LavaRising"
+  arrow:
+    #Applies to UltraOp mode
+    material: ARROW
+    amount: 16
+  ultra-food:
+    #Applies to UltraOp mode
+    apple:
+      material: GOLDEN_APPLE
+      amount: 4
+    carrot:
+      material: GOLDEN_CARROT
+      amount: 24

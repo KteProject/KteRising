@@ -1,0 +1,76 @@
+#Should the mod be chosen by vote or randomly? (By vote = true, Random = false)
+vote-start: true
+#Do you want the game to start automatically when a certain number is reached?
+player-start: true
+#Should the game automatically start when reaching how many players?
+player-start-count: 10
+#Countdown to the start of the game after reaching the number of players. (Seconds)
+player-start-time: 10
+#How many seconds countdown when you type start game command. We recommend at least 2 seconds
+start-countdown: 3
+#It sets when lava will rise in Classic mode.(Applies to Trident, Elytra and Classic mode)
+classic-start-time: 600
+#It sets when lava will rise in Op mode.(Applies to TridentOp, ElytraOP and Op mode)
+op-start-time: 60
+#It sets the world size.
+world-size: 100
+#It writes when PvP will be enabled.
+pvp-allow: 80
+#It writes how often the lava will rise, in seconds.
+lava-delay: 1
+#It writes at which layer the lava will start to rise.
+lava-start-block: 1
+#It writes at which layer the lava will stop. (1.8+ = 256, 1.18+ = 320)
+lava-border: 256
+#Automatic server shutdown (if you turn this feature off, you will have to stop it yourself)
+server-stop: true
+#If you turn off AutoPickUp, the blocks you break will fall to the ground.
+autopickup: true
+#If you turn off AutoMelt, the crushed ore will come back as ore.
+automelt: true
+#If you deactivate it, the water won't turn to ice
+water-to-ice:
+    enabled: true
+    low-y: 40
+    high-y: 63
+#If it is false the spectators can generate chunks
+spectators-generate-chunks: true
+
+#For example, people don't get themselves killed by putting a door. When the lava reaches a certain layer, it will check and if a person is below this layer, it will kill them.
+#Which layer should it check underneath?
+layer-control: 210
+#Kills a player standing on a certain layer of lava
+layer-kill: 209
+
+sound:
+  countdown-sound: BLOCK_NOTE_BLOCK_PLING
+  skip-sound: BLOCK_NOTE_BLOCK_PLING
+  freeze-sound: BLOCK_NOTE_BLOCK_PLING
+  start-sound: ENTITY_GENERIC_EXPLODE
+  lava-rise-sound: BLOCK_NOTE_BLOCK_PLING
+  winner-sound: ENTITY_FIREWORK_ROCKET_TWINKLE
+  pvp-sound: BLOCK_NOTE_BLOCK_PLING
+  shrink-sound: BLOCK_NOTE_BLOCK_PLING
+
+custom-death-messages:
+  enabled: true
+  havent-killer: "&c☠ &a%player%"
+  have-killer: "&c⚔ &a%player% &cfrom &a%killer%"
+
+scoreboard:
+  scoreboard-enabled: true
+  scoreboard-title: "&6Kte Project"
+  #Max 15 Lines.
+  #If you write scores with the same name, only one of them is displayed, even if there is a space
+  #Placeholders won't work if you use this scoreboard! (Only %survival%,%lava%,%pvp%,%time%,%mode% these work.)
+  #If you want to placeholders to work you can use a different plugin.
+  scoreboard:
+    - '&7 '
+    - '&fSurvivor: &a%survivor%'
+    - '&6 '
+    - '&fLava: &a%lava%'
+    - '&fPvp: &a%pvp%'
+    - '&fTime: &a%time%'
+    - '&5 '
+    - '&fMode: &a%mode%'
+    - '&4 '
