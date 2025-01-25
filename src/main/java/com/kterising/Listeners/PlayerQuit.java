@@ -3,7 +3,6 @@ package com.kterising.Listeners;
 import com.kterising.Functions.PlayerStats;
 import com.kterising.Functions.StartGame;
 import com.kterising.KteRising;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -15,11 +14,15 @@ public class PlayerQuit implements Listener {
         this.plugin = plugin;
     }
     @EventHandler
-    private void PlayerLeave(PlayerQuitEvent event) {
+    public void PlayerLeave(PlayerQuitEvent event) {
         if(StartGame.match) {
-            event.getPlayer().damage(999999999);
+            if(StartGame.lavarising) {
+                event.getPlayer().damage(999999999);
+                PlayerStats.addDeath(event.getPlayer());
+            } else {
+                StartGame.leavedPlayers.put(event.getPlayer().getUniqueId(), event.getPlayer().getLocation());
+            }
             StartGame.live(plugin);
-            PlayerStats.addDeath((Player) event);
         }
     }
 }

@@ -4,6 +4,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
 import java.io.File;
+
 public class ItemsConfig {
 
     private static File itemsFile;

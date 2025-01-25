@@ -1,59 +1,56 @@
 package com.kterising.Listeners;
 
 import com.kterising.Functions.MessagesConfig;
-import com.kterising.Functions.ScoreBoard;
+import com.kterising.Functions.SpecialItems;
 import com.kterising.Functions.StartGame;
-import com.kterising.KteRising;
+import com.kterising.Team.TeamManager;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.Objects;
 
-import static com.kterising.Functions.ModVoteGUI.openModVoteMenu;
+import static com.kterising.Functions.StartGame.centerX;
+import static com.kterising.Functions.StartGame.centerZ;
 
 public class PlayerJoin implements Listener {
-
-    private final KteRising plugin;
-
-    public PlayerJoin(KteRising plugin) {
-        this.plugin = plugin;
-    }
 
     @EventHandler
     public void playerjoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
         if (StartGame.match) {
-            player.teleport(new Location(player.getWorld(), 0, 160, 0));
-            player.setGameMode(GameMode.SPECTATOR);
-            String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.eliminated.title")));
-            String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.eliminated.sub")));
-            player.sendTitle(title, subtitle);
+            player.sendMessage(String.valueOf(StartGame.leavedPlayers.get(player.getUniqueId())));
+            if(StartGame.leavedPlayers.get(player.getUniqueId()) != null) {
+                player.setGameMode(GameMode.SURVIVAL);
+                player.teleport(StartGame.leavedPlayers.get(player.getUniqueId()));
+                String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.rejoined.title")));
+                String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.rejoined.sub")));
+                player.sendTitle(title, subtitle);
+            } else {
+                player.teleport(new Location(player.getWorld(), centerX, 160, centerZ));
+                player.setGameMode(GameMode.SPECTATOR);
+                String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.eliminated.title")));
+                String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.eliminated.sub")));
+                player.sendTitle(title, subtitle);
+            }
         } else {
-            player.teleport(new Location(player.getWorld(), 0, 160, 0));
+            for (int y = 60; y < 100; y++) {
+                Location loc = new Location(player.getWorld(), centerX, y, centerZ);
+                if (player.getWorld().getBlockAt(loc).getType() == Material.AIR) {
+                    player.teleport(loc);
+                    break;
+                }
+            }
             player.setGameMode(GameMode.ADVENTURE);
-            if (plugin.getConfig().getBoolean("vote-start")) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        openModVoteMenu(player);
-                    }
-                }.runTaskLater(plugin, 50L);
-            }
+            TeamManager.assignPlayerToTeam(event.getPlayer());
+            player.getInventory().clear();
+            SpecialItems.giveSpecialItems(event.getPlayer());
         }
-
-        BukkitRunnable scoreboardTask = new BukkitRunnable() {
-            @Override
-            public void run() {
-                ScoreBoard.scoreboard(plugin, event.getPlayer());
-            }
-        };
-        scoreboardTask.runTaskTimer(plugin, 0L, 20L);
     }
 }

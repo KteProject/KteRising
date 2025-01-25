@@ -2,6 +2,7 @@ package com.kterising.Command;
 
 import com.kterising.Functions.*;
 import com.kterising.KteRising;
+import com.kterising.Team.TeamGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandExecutor;
@@ -45,6 +46,9 @@ public class Command implements CommandExecutor {
             if (sender.hasPermission("kterising.vote")) {
                 sender.sendMessage(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("message.command-vote"))));
             }
+            if (sender.hasPermission("kterising.team")) {
+                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("message.command-team"))));
+            }
             sender.sendMessage(ChatColor.translateAlternateColorCodes('&', ""));
             sender.sendMessage(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("message.command-title"))));
             return true;
@@ -65,9 +69,9 @@ public class Command implements CommandExecutor {
 
                 sender.sendMessage(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("message.command-game-started"))));
 
-                ModVoteGUI.setVotingEnabled(false);
-                ModVoteGUI.selectWinningMod();
+                ModVoteGUI.selectWinningVotes();
                 for (Player player : Bukkit.getOnlinePlayers()) {
+                    SpecialItems.removeSpecialItems(player);
                     ModVoteGUI.closeModVoteMenu(player);
                 }
 
@@ -102,6 +106,21 @@ public class Command implements CommandExecutor {
                 if (sender instanceof Player) {
                     Player player = (Player) sender;
                     openModVoteMenu(player);
+                }
+                return true;
+
+            case "team":
+                if (!sender.hasPermission("kterising.team")) {
+                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("message.dont-permission"))));
+                    return true;
+                }
+                if (StartGame.match) {
+                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("message.already-started"))));
+                    return true;
+                }
+                if (sender instanceof Player) {
+                    Player player = (Player) sender;
+                    TeamGUI.openTeamMenu(player);
                 }
                 return true;
 
@@ -180,96 +199,96 @@ public class Command implements CommandExecutor {
                     return true;
                 }
 
-                    switch (args[1]) {
-                        case "classic":
-                        case "Classic":
-                        case "CLASSIC":
-                            selectedmode = true;
-                            StartGame.mode = "Classic";
-                            for (Player player : Bukkit.getOnlinePlayers()) {
-                                String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.title")).replace("%mode%", StartGame.mode));
-                                String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.sub")).replace("%mode%", StartGame.mode));
-                                player.sendTitle(title, subtitle);
-                            }
+                switch (args[1]) {
+                    case "classic":
+                    case "Classic":
+                    case "CLASSIC":
+                        selectedmode = true;
+                        StartGame.mode = "Classic";
+                        for (Player player : Bukkit.getOnlinePlayers()) {
+                            String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.title")).replace("%mode%", StartGame.mode));
+                            String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.sub")).replace("%mode%", StartGame.mode));
+                            player.sendTitle(title, subtitle);
+                        }
 
-                            return true;
-                        case "op":
-                        case "Op":
-                        case "OP":
-                            selectedmode = true;
-                            StartGame.mode = "OP";
-                            for (Player player : Bukkit.getOnlinePlayers()) {
-                                String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.title")).replace("%mode%", StartGame.mode));
-                                String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.sub")).replace("%mode%", StartGame.mode));
-                                player.sendTitle(title, subtitle);
-                            }
-                            return true;
-                        case "ultraop":
-                        case "Ultraop":
-                        case "UltraOp":
-                        case "ULTRAOP":
-                        case "UltraOP":
-                            selectedmode = true;
-                            StartGame.mode = "UltraOP";
-                            for (Player player : Bukkit.getOnlinePlayers()) {
-                                String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.title")).replace("%mode%", StartGame.mode));
-                                String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.sub")).replace("%mode%", StartGame.mode));
-                                player.sendTitle(title, subtitle);
-                            }
-                            return true;
-                        case "elytraop":
-                        case "Elytraop":
-                        case "ElytraOp":
-                        case "ELYTRAOP":
-                        case "ElytraOP":
-                            selectedmode = true;
-                            StartGame.mode = "ElytraOP";
-                            for (Player player : Bukkit.getOnlinePlayers()) {
-                                String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.title")).replace("%mode%", StartGame.mode));
-                                String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.sub")).replace("%mode%", StartGame.mode));
-                                player.sendTitle(title, subtitle);
-                            }
-                            return true;
-                        case "elytra":
-                        case "Elytra":
-                        case "ELYTRA":
-                            selectedmode = true;
-                            StartGame.mode = "Elytra";
-                            for (Player player : Bukkit.getOnlinePlayers()) {
-                                String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.title")).replace("%mode%", StartGame.mode));
-                                String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.sub")).replace("%mode%", StartGame.mode));
-                                player.sendTitle(title, subtitle);
+                        return true;
+                    case "op":
+                    case "Op":
+                    case "OP":
+                        selectedmode = true;
+                        StartGame.mode = "OP";
+                        for (Player player : Bukkit.getOnlinePlayers()) {
+                            String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.title")).replace("%mode%", StartGame.mode));
+                            String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.sub")).replace("%mode%", StartGame.mode));
+                            player.sendTitle(title, subtitle);
+                        }
+                        return true;
+                    case "ultraop":
+                    case "Ultraop":
+                    case "UltraOp":
+                    case "ULTRAOP":
+                    case "UltraOP":
+                        selectedmode = true;
+                        StartGame.mode = "UltraOP";
+                        for (Player player : Bukkit.getOnlinePlayers()) {
+                            String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.title")).replace("%mode%", StartGame.mode));
+                            String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.sub")).replace("%mode%", StartGame.mode));
+                            player.sendTitle(title, subtitle);
+                        }
+                        return true;
+                    case "elytraop":
+                    case "Elytraop":
+                    case "ElytraOp":
+                    case "ELYTRAOP":
+                    case "ElytraOP":
+                        selectedmode = true;
+                        StartGame.mode = "ElytraOP";
+                        for (Player player : Bukkit.getOnlinePlayers()) {
+                            String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.title")).replace("%mode%", StartGame.mode));
+                            String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.sub")).replace("%mode%", StartGame.mode));
+                            player.sendTitle(title, subtitle);
+                        }
+                        return true;
+                    case "elytra":
+                    case "Elytra":
+                    case "ELYTRA":
+                        selectedmode = true;
+                        StartGame.mode = "Elytra";
+                        for (Player player : Bukkit.getOnlinePlayers()) {
+                            String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.title")).replace("%mode%", StartGame.mode));
+                            String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.sub")).replace("%mode%", StartGame.mode));
+                            player.sendTitle(title, subtitle);
 
-                            }
-                            return true;
-                        case "trident":
-                        case "Trident":
-                        case "TRIDENT":
-                            selectedmode = true;
-                            StartGame.mode = "Trident";
-                            for (Player player : Bukkit.getOnlinePlayers()) {
-                                String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.title")).replace("%mode%", StartGame.mode));
-                                String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.sub")).replace("%mode%", StartGame.mode));
-                                player.sendTitle(title, subtitle);
-                            }
-                            return true;
-                        case "tridentop":
-                        case "Tridentop":
-                        case "TridentOp":
-                        case "TRIDENTOP":
-                        case "TridentOP":
-                            selectedmode = true;
-                            StartGame.mode = "TridentOP";
-                            for (Player player : Bukkit.getOnlinePlayers()) {
-                                String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.title")).replace("%mode%", StartGame.mode));
-                                String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.sub")).replace("%mode%", StartGame.mode));
-                                player.sendTitle(title, subtitle);
-                            }
-                            return true;
-                        default:
-                            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("message.invalid-command"))));
-                            return true;
-                    }
+                        }
+                        return true;
+                    case "trident":
+                    case "Trident":
+                    case "TRIDENT":
+                        selectedmode = true;
+                        StartGame.mode = "Trident";
+                        for (Player player : Bukkit.getOnlinePlayers()) {
+                            String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.title")).replace("%mode%", StartGame.mode));
+                            String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.sub")).replace("%mode%", StartGame.mode));
+                            player.sendTitle(title, subtitle);
+                        }
+                        return true;
+                    case "tridentop":
+                    case "Tridentop":
+                    case "TridentOp":
+                    case "TRIDENTOP":
+                    case "TridentOP":
+                        selectedmode = true;
+                        StartGame.mode = "TridentOP";
+                        for (Player player : Bukkit.getOnlinePlayers()) {
+                            String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.title")).replace("%mode%", StartGame.mode));
+                            String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mode-refresh.sub")).replace("%mode%", StartGame.mode));
+                            player.sendTitle(title, subtitle);
+                        }
+                        return true;
+                    default:
+                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("message.invalid-command"))));
+                        return true;
+                }
             default:
                 sender.sendMessage(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("message.invalid-command"))));
                 return true;

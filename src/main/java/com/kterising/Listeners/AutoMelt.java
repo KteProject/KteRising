@@ -20,10 +20,16 @@ public class AutoMelt implements Listener {
         if(plugin.getConfig().getBoolean("automelt")) {
             switch (event.getBlock().getType()) {
                 case IRON_ORE:
+                case DEEPSLATE_IRON_ORE:
                     droppedItem = new ItemStack(Material.IRON_INGOT, 1);
                     break;
                 case GOLD_ORE:
+                case DEEPSLATE_GOLD_ORE:
                     droppedItem = new ItemStack(Material.GOLD_INGOT, 1);
+                    break;
+                case COPPER_ORE:
+                case DEEPSLATE_COPPER_ORE:
+                    droppedItem = new ItemStack(Material.COPPER_INGOT, 1);
                     break;
                 default:
                     break;

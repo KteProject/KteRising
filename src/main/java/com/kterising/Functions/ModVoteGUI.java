@@ -1,6 +1,7 @@
 package com.kterising.Functions;
 
 import com.kterising.Command.Command;
+import com.kterising.Team.TeamManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -18,20 +19,14 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 
-
 public class ModVoteGUI implements Listener {
-    private static final String MENU_TITLE = (ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("mod.vote-gui"))));
-    private static final ModManager modManager = new ModManager();
-    private static boolean votingEnabled = true;
+    private static final String MENU_TITLE = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("mod.vote-gui")));
+    public static final ModManager modManager = new ModManager();
     private static final Set<UUID> votingPlayers = new HashSet<>();
+    private static String cachedWinningTeam = null;
 
     public static void openModVoteMenu(Player player) {
-        if (isVotingEnabled()) {
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("mod.voting-disabled"))));
-            return;
-        }
-
-        Inventory inventory = Bukkit.createInventory(null, 27, MENU_TITLE);
+        Inventory inventory = Bukkit.createInventory(null, 36, MENU_TITLE);
 
         int[] slots = {10, 11, 12, 13, 14, 15, 16};
 
@@ -40,6 +35,11 @@ public class ModVoteGUI implements Listener {
             ItemStack modItem = createModItem(mod);
             inventory.setItem(slots[index++], modItem);
         }
+
+        ItemStack teamItem = createTeamItem(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("vote.team"))), Material.DIAMOND_SWORD);
+        inventory.setItem(27, teamItem);
+        ItemStack noTeamItem = createTeamItem(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("vote.no-team"))), Material.BARRIER);
+        inventory.setItem(28, noTeamItem);
 
         player.openInventory(inventory);
         votingPlayers.add(player.getUniqueId());
@@ -78,48 +78,76 @@ public class ModVoteGUI implements Listener {
 
         if (modItem != null) {
             ItemMeta meta = modItem.getItemMeta();
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&6" + mod));
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            if (meta != null) {
+                meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&6" + mod));
+                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 
-            List<String> lore = new ArrayList<>();
-            lore.add(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("mod.votes")).replace("%votes%", String.valueOf(modManager.getVotes(mod)))));
-            meta.setLore(lore);
-            modItem.setItemMeta(meta);
+                List<String> lore = new ArrayList<>();
+                lore.add(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("mod.votes")).replace("%votes%", String.valueOf(modManager.getVotes(mod)))));
+                meta.setLore(lore);
+                modItem.setItemMeta(meta);
+            }
         }
 
         return modItem;
     }
 
-    public static void setVotingEnabled(boolean enabled) {
-        votingEnabled = enabled;
-    }
+    private static ItemStack createTeamItem(String name, Material material) {
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&6" + name));
 
-    public static boolean isVotingEnabled() {
-        return !votingEnabled;
+            List<String> lore = new ArrayList<>();
+            lore.add(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("mod.votes")).replace("%votes%", String.valueOf(modManager.getTeamVotes(name)))));
+            meta.setLore(lore);
+
+            item.setItemMeta(meta);
+        }
+        return item;
     }
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (isVotingEnabled()) return;
-
         if (event.getView().getTitle().equals(MENU_TITLE)) {
             event.setCancelled(true);
             if (event.getCurrentItem() != null && event.getCurrentItem().hasItemMeta()) {
                 Player player = (Player) event.getWhoClicked();
-                String displayName = event.getCurrentItem().getItemMeta().getDisplayName();
+                String displayName = Objects.requireNonNull(event.getCurrentItem().getItemMeta()).getDisplayName();
                 String mod = ChatColor.stripColor(displayName);
-
-                String previousVote = modManager.getVoteForPlayer(player.getUniqueId());
-                if (previousVote != null && previousVote.equals(mod)) {
-                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("mod.already-voted"))));
-                    return;
+                if (mod.equals(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("vote.team")))) || mod.equals(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("vote.no-team"))))) {
+                    handleTeamVote(player, mod);
+                } else {
+                    handleModVote(player, mod);
                 }
-
-                modManager.voteForMod(player, mod);
-                player.sendMessage(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("mod.voted")).replace("%mod%", mod)));
-                player.closeInventory();
             }
         }
+    }
+
+    private void handleModVote(Player player, String mod) {
+        String previousVote = modManager.getVoteForPlayer(player.getUniqueId());
+        if (previousVote != null && previousVote.equals(mod)) {
+            player.closeInventory();
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("mod.already-voted"))));
+            return;
+        }
+
+        modManager.voteForMod(player, mod);
+        player.sendMessage(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("mod.voted")).replace("%mod%", mod)));
+        player.closeInventory();
+    }
+
+    private void handleTeamVote(Player player, String teamVote) {
+        String previousVote = modManager.getTeamVoteForPlayer(player.getUniqueId());
+        if (previousVote != null && previousVote.equals(teamVote)) {
+            player.closeInventory();
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("mod.already-voted"))));
+            return;
+        }
+
+        modManager.voteForTeam(player, teamVote);
+        player.sendMessage(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("mod.voted")).replace("%mod%", teamVote)));
+        player.closeInventory();
     }
 
     public static String getWinningMod() {
@@ -140,28 +168,80 @@ public class ModVoteGUI implements Listener {
                 }
             }
 
-            if (topMods.isEmpty()) {
-                return null;
-            }
-
             Random random = new Random();
             return topMods.get(random.nextInt(topMods.size()));
         }
     }
 
-    public static void selectWinningMod() {
+    public static String getWinningTeam() {
+
+        Map<String, Integer> teamVotes = modManager.getTeamVotes();
+        List<String> topTeams = new ArrayList<>();
+        int maxVotes = 0;
+
+        for (Map.Entry<String, Integer> entry : teamVotes.entrySet()) {
+            if (entry.getValue() > maxVotes) {
+                maxVotes = entry.getValue();
+                topTeams.clear();
+                topTeams.add(entry.getKey());
+            } else if (entry.getValue() == maxVotes) {
+                topTeams.add(entry.getKey());
+            }
+        }
+
+        if (topTeams.size() > 1) {
+            Random random = new Random();
+            cachedWinningTeam = topTeams.get(random.nextInt(topTeams.size()));
+        } else if (!topTeams.isEmpty()) {
+            cachedWinningTeam = topTeams.get(0);
+        }
+
+        return cachedWinningTeam;
+    }
+
+    public static void selectWinningVotes() {
         String winningMod = getWinningMod();
-        if (winningMod != null) {
-            StartGame.mode = winningMod;
-            String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mod-winner.title")));
-            title = title.replace("%mod%", winningMod);
-            String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mod-winner.sub")).replace("%mod%", winningMod));
+        String winningTeam = getWinningTeam();
+
+        if (winningMod != null && winningTeam != null) {
+            String combinedTitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mod-winner.title")));
+            combinedTitle = combinedTitle.replace("%mod%", winningMod).replace("%team%", winningTeam);
+            String combinedSubtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.mod-winner.sub")).replace("%mod%", winningMod).replace("%team%", winningTeam));
+
             for (Player player : Bukkit.getOnlinePlayers()) {
-                player.sendTitle(title, subtitle);
+                player.sendTitle(combinedTitle, combinedSubtitle);
                 player.playSound(player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 1.0f, 1.0f);
             }
-        } else {
-            Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("mod.no_winner"))));
+
+            if (!Command.selectedmode) {
+                switch (winningMod) {
+                    case "Classic":
+                        StartGame.mode = "Classic";
+                        break;
+                    case "Elytra":
+                        StartGame.mode = "Elytra";
+                        break;
+                    case "Trident":
+                        StartGame.mode = "Trident";
+                        break;
+                    case "OP":
+                        StartGame.mode = "OP";
+                        break;
+                    case "UltraOP":
+                        StartGame.mode = "UltraOP";
+                        break;
+                    case "ElytraOP":
+                        StartGame.mode = "ElytraOP";
+                        break;
+                    case "TridentOP":
+                        StartGame.mode = "TridentOP";
+                        break;
+                }
+
+                if (ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("vote.no-team"))).equals(winningTeam)) {
+                    TeamManager.removeAllPlayersFromTeams();
+                }
+            }
         }
     }
 

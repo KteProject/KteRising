@@ -2,6 +2,7 @@ package com.kterising.Listeners;
 
 import com.kterising.Functions.MessagesConfig;
 import com.kterising.Functions.ModVoteGUI;
+import com.kterising.Functions.SpecialItems;
 import com.kterising.Functions.StartGame;
 import com.kterising.KteRising;
 import net.md_5.bungee.api.ChatMessageType;
@@ -66,10 +67,10 @@ public class AutoStart implements Listener {
                 int remainingTime = time.decrementAndGet();
                 if (remainingTime <= 0) {
                     if (plugin.getConfig().getBoolean("vote-start")) {
-                        ModVoteGUI.setVotingEnabled(false);
-                        ModVoteGUI.selectWinningMod();
+                        ModVoteGUI.selectWinningVotes();
                         for (Player player : Bukkit.getOnlinePlayers()) {
                             ModVoteGUI.closeModVoteMenu(player);
+                            SpecialItems.removeSpecialItems(player);
                         }
                     }
                     new BukkitRunnable() {

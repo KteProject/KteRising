@@ -6,7 +6,6 @@ import com.kterising.Functions.StartGame;
 import com.kterising.KteRising;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -26,7 +25,7 @@ public class PlayerDeath implements Listener {
         event.getEntity().sendTitle(title,subtitle);
         StartGame.live(plugin);
         PlayerStats.addDeath(event.getEntity());
-        if (event.getEntity().getKiller() instanceof Player) {
+        if (event.getEntity().getKiller() != null) {
             PlayerStats.addKill(event.getEntity().getKiller());
         }
     }

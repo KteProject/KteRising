@@ -35,9 +35,11 @@ public class AutoPickUp implements Listener {
                     droppedItem = new ItemStack(Material.DIRT, 1);
                     break;
                 case COAL_ORE:
+                case DEEPSLATE_COAL_ORE:
                     droppedItem = new ItemStack(Material.COAL, 1);
                     break;
                 case DIAMOND_ORE:
+                case DEEPSLATE_DIAMOND_ORE:
                     droppedItem = new ItemStack(Material.DIAMOND, 1);
                     break;
                 case OAK_LOG:
@@ -68,6 +70,7 @@ public class AutoPickUp implements Listener {
                     droppedItem = new ItemStack(Material.GRANITE, 1);
                     break;
                 case EMERALD_ORE:
+                case DEEPSLATE_EMERALD_ORE:
                     droppedItem = new ItemStack(Material.EMERALD_ORE, 1);
                     break;
                 case GRAVEL:
@@ -78,9 +81,11 @@ public class AutoPickUp implements Listener {
                     }
                     break;
                 case REDSTONE_ORE:
+                case DEEPSLATE_REDSTONE_ORE:
                     droppedItem = new ItemStack(Material.REDSTONE, 2);
                     break;
                 case LAPIS_ORE:
+                case DEEPSLATE_LAPIS_ORE:
                     droppedItem = new ItemStack(Material.LAPIS_LAZULI, 2);
                     break;
                 case SAND:
@@ -94,6 +99,30 @@ public class AutoPickUp implements Listener {
                     break;
                 case SANDSTONE:
                     droppedItem = new ItemStack(Material.SANDSTONE, 1);
+                    break;
+                case DEEPSLATE:
+                    droppedItem = new ItemStack(Material.DEEPSLATE, 1);
+                    break;
+                case AMETHYST_BLOCK:
+                    droppedItem = new ItemStack(Material.AMETHYST_BLOCK, 1);
+                    break;
+                case BUDDING_AMETHYST:
+                    droppedItem = new ItemStack(Material.BUDDING_AMETHYST, 1);
+                    break;
+                case COBBLED_DEEPSLATE:
+                    droppedItem = new ItemStack(Material.COBBLED_DEEPSLATE, 1);
+                    break;
+                case MOSS_BLOCK:
+                    droppedItem = new ItemStack(Material.MOSS_BLOCK, 1);
+                    break;
+                case TUFF:
+                    droppedItem = new ItemStack(Material.TUFF, 1);
+                    break;
+                case DRIPSTONE_BLOCK:
+                    droppedItem = new ItemStack(Material.DRIPSTONE_BLOCK, 1);
+                    break;
+                case POINTED_DRIPSTONE:
+                    droppedItem = new ItemStack(Material.POINTED_DRIPSTONE, 1);
                     break;
                 default:
                     break;
