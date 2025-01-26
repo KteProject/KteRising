@@ -5,6 +5,7 @@ import com.kterising.Command.TabCompleters;
 import com.kterising.Functions.*;
 import com.kterising.Listeners.*;
 import com.kterising.Team.TeamGUI;
+import com.kterising.Team.TeamManager;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -218,6 +219,7 @@ public final class KteRising extends JavaPlugin {
             Bukkit.getPluginManager().registerEvents(new AutoPickUp(this), this);
         }
         Bukkit.getPluginManager().registerEvents(new TeamGUI(), this);
+        TeamManager.getInstance().initialize(this);
         Bukkit.getPluginManager().registerEvents(new SpecialItems(), this);
         Bukkit.getPluginManager().registerEvents(new PlayerStats(), this);
         getServer().getPluginManager().registerEvents(new CustomDeathMessage(this), this);

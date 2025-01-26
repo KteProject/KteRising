@@ -73,6 +73,7 @@ public class Command implements CommandExecutor {
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     SpecialItems.removeSpecialItems(player);
                     ModVoteGUI.closeModVoteMenu(player);
+                    player.closeInventory();
                 }
 
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {

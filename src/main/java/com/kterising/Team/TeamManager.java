@@ -3,6 +3,7 @@ package com.kterising.Team;
 import com.kterising.Functions.MessagesConfig;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,19 +14,24 @@ public class TeamManager {
 
     private TeamManager() {
         teams = new ArrayList<>();
-        initializeTeams();
     }
 
     public static TeamManager getInstance() {
         return instance;
     }
 
-    private void initializeTeams() {
+    public void initialize(Plugin plugin) {
+        initializeTeams(plugin);
+    }
+
+    private void initializeTeams(Plugin plugin) {
         String teamSuffix = MessagesConfig.get().getString("messages.team");
+        int maxSize = plugin.getConfig().getInt("team.max-size");
+
         String translatedTeamSuffix = ChatColor.translateAlternateColorCodes('&', teamSuffix);
 
         for (char i = 'A'; i <= 'Z'; i++) {
-            teams.add(new Team(i + translatedTeamSuffix, 2));
+            teams.add(new Team(i + translatedTeamSuffix, maxSize));
         }
     }
 

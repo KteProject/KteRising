@@ -71,7 +71,7 @@ public class AutoPickUp implements Listener {
                     break;
                 case EMERALD_ORE:
                 case DEEPSLATE_EMERALD_ORE:
-                    droppedItem = new ItemStack(Material.EMERALD_ORE, 1);
+                    droppedItem = new ItemStack(Material.EMERALD, 1);
                     break;
                 case GRAVEL:
                     if (chance < 0.7) {

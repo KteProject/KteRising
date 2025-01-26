@@ -8,8 +8,11 @@ import com.kterising.Team.Team;
 import com.kterising.Team.TeamManager;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.HumanEntity;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class PlaceholderUtil {
 
@@ -42,6 +45,8 @@ public class PlaceholderUtil {
                 return getTeamStatus();
             case "team":
                 return getPlayerTeamName(player);
+            case "teammates":
+                return getTeammates(player);
             default:
                 return null;
         }
@@ -69,5 +74,24 @@ public class PlaceholderUtil {
             }
         }
         return ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("vote.wait")));
+    }
+
+    private static String getTeammates(OfflinePlayer player) {
+        Team team = TeamManager.getPlayerTeam(Objects.requireNonNull(player.getPlayer()));
+
+        if (team != null) {
+            List<String> teammates = team.getPlayers().stream()
+                    .filter(p -> !p.equals(player.getPlayer()))
+                    .map(HumanEntity::getName)
+                    .collect(Collectors.toList());
+
+            if (teammates.isEmpty()) {
+                return ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("messages.no-teammates")));
+            } else {
+                return String.join(", ", teammates);
+            }
+        } else {
+            return ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("messages.no-team-name")));
+        }
     }
 }

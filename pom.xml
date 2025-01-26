@@ -6,7 +6,7 @@
 
     <groupId>com</groupId>
     <artifactId>KteRising</artifactId>
-    <version>1.5</version>
+    <version>1.5.2</version>
     <packaging>jar</packaging>
 
     <name>KteRising</name>
@@ -23,8 +23,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
+                    <source>14</source>
+                    <target>14</target>
                 </configuration>
             </plugin>
         </plugins>

@@ -13,6 +13,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.kterising.Functions.ModVoteGUI.modManager;
 
@@ -60,6 +61,7 @@ public class StartGame implements Listener {
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.getInventory().clear();
+            player.closeInventory();
             player.setHealth(20);
             player.setFoodLevel(20);
             player.setGameMode(GameMode.SURVIVAL);
@@ -213,6 +215,7 @@ public class StartGame implements Listener {
             if (player.getGameMode() == GameMode.SURVIVAL) {
                 survivor++;
                 survivingPlayers.add(player);
+
                 if (winnerPlayer == null) {
                     winnerPlayer = player;
                     winnerTeam = TeamManager.getPlayerTeam(player);
@@ -222,7 +225,7 @@ public class StartGame implements Listener {
             }
         }
 
-        if (survivor == 1 || (survivor == 2 && winnerTeam != null)) {
+        if (survivor == 1 || (survivor >= 2 && winnerTeam != null)) {
             String winner;
             if (survivor == 1) {
                 assert winnerPlayer != null;
@@ -232,8 +235,12 @@ public class StartGame implements Listener {
                     win = true;
                 }
             } else {
-                winner = survivingPlayers.get(0).getName() + ", " + survivingPlayers.get(1).getName();
-                if (!win && winnerTeam != null) {
+                assert winnerTeam != null;
+                winner = winnerTeam.getPlayers().stream()
+                        .map(Player::getName)
+                        .collect(Collectors.joining(", "));
+
+                if (!win) {
                     for (Player player : winnerTeam.getPlayers()) {
                         PlayerStats.addWin(player);
                     }
@@ -242,27 +249,32 @@ public class StartGame implements Listener {
             }
 
             for (Player player : Bukkit.getOnlinePlayers()) {
-                String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.finish-game.title")));
+                String title = ChatColor.translateAlternateColorCodes('&',
+                        Objects.requireNonNull(MessagesConfig.get().getString("title.finish-game.title")));
                 title = title.replace("%winner%", winner);
-                String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.finish-game.sub")).replace("%winner%", winner));
+                String subtitle = ChatColor.translateAlternateColorCodes('&',
+                        Objects.requireNonNull(MessagesConfig.get().getString("title.finish-game.sub")).replace("%winner%", winner));
+
                 player.sendTitle(title, subtitle);
-                player.getWorld().playSound(player.getLocation(), getSoundFromConfig(plugin, "sound.winner-sound"), 1.0f, 1.0f);
+
+                player.getWorld().playSound(player.getLocation(),
+                        getSoundFromConfig(plugin, "sound.winner-sound"), 1.0f, 1.0f);
             }
 
-
-                if(!end) {
-                    Bukkit.getScheduler().runTaskLater(plugin, () -> resetWorldBorder(plugin), 100L);
-                    end = true;
-                }
+            if (!end) {
+                Bukkit.getScheduler().runTaskLater(plugin, () -> resetWorldBorder(plugin), 100L);
+                end = true;
+            }
         }
 
         if (survivor == 0) {
-            if(!end) {
+            if (!end) {
                 Bukkit.getScheduler().runTaskLater(plugin, () -> resetWorldBorder(plugin), 100L);
                 end = true;
             }
         }
     }
+
 
     public static int centerX = 0;
     public static int centerZ = 0;
@@ -288,6 +300,7 @@ public class StartGame implements Listener {
         Command.selectedmode = false;
         modManager.resetVotes();
 
+
         World world = Bukkit.getWorld("world");
         assert world != null;
         WorldBorder worldBorder = world.getWorldBorder();
@@ -297,6 +310,24 @@ public class StartGame implements Listener {
         worldBorder.setDamageBuffer(2);
 
         world.setSpawnLocation(centerX, 100, centerZ);
+
+        int minX = (int) (worldBorder.getCenter().getX() - worldBorder.getSize() / 2);
+        int minZ = (int) (worldBorder.getCenter().getZ() - worldBorder.getSize() / 2);
+        int maxX = minX + (int) worldBorder.getSize();
+        int maxZ = minZ + (int) worldBorder.getSize();
+
+        if(plugin.getConfig().getBoolean("water-to-ice.enabled")) {
+            for (int x = minX; x < maxX; x++) {
+                for (int y = plugin.getConfig().getInt("water-to-ice.low-y"); y <= plugin.getConfig().getInt("water-to-ice.high-y"); y++) {
+                    for (int z = minZ; z < maxZ; z++) {
+                        if (world.getBlockAt(x, y, z).getType() == Material.WATER) {
+                            world.getBlockAt(x, y, z).setType(Material.ICE);
+                        }
+                    }
+                }
+            }
+        }
+
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.getInventory().clear();

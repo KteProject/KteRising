@@ -3,6 +3,7 @@ package com.kterising.Listeners;
 import com.kterising.Functions.MessagesConfig;
 import com.kterising.Functions.SpecialItems;
 import com.kterising.Functions.StartGame;
+import com.kterising.Team.TeamGUI;
 import com.kterising.Team.TeamManager;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -49,6 +50,7 @@ public class PlayerJoin implements Listener {
             }
             player.setGameMode(GameMode.ADVENTURE);
             TeamManager.assignPlayerToTeam(event.getPlayer());
+            TeamGUI.updateTeamMenuForAll();
             player.getInventory().clear();
             SpecialItems.giveSpecialItems(event.getPlayer());
         }

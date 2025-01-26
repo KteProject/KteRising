@@ -39,6 +39,9 @@ lava-border: 256
 #Kills a player standing on a certain layer of lava. (border-kill has to be lower than lava-border!!!)
 border-kill: 253
 
+team:
+  max-size: 2
+
 sound:
   countdown-sound: BLOCK_NOTE_BLOCK_PLING
   skip-sound: BLOCK_NOTE_BLOCK_PLING
