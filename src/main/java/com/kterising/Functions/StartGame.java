@@ -30,6 +30,7 @@ public class StartGame implements Listener {
     public static Boolean match;
     public static Boolean end = false;
     private static BukkitRunnable task;
+    private static BukkitRunnable task2;
 
     public static HashMap<UUID, Location> leavedPlayers = new HashMap<UUID, Location>();
 
@@ -284,6 +285,12 @@ public class StartGame implements Listener {
             task.cancel();
             task = null;
         }
+
+        if (task2 != null) {
+            task2.cancel();
+            task2 = null;
+        }
+
         centerX += 1000;
         centerZ += 1000;
 
@@ -351,32 +358,44 @@ public class StartGame implements Listener {
     }
 
     public static void upLava(final Plugin plugin) {
+
+        if (task2 != null && !task2.isCancelled()) {
+            task2.cancel();
+        }
+
         final World world = Bukkit.getWorld("world");
         assert world != null;
         final WorldBorder worldBorder = world.getWorldBorder();
-        final int minX = (int)(worldBorder.getCenter().getX() - worldBorder.getSize() / 2.0D);
-        final int minZ = (int)(worldBorder.getCenter().getZ() - worldBorder.getSize() / 2.0D);
-        final int maxX = minX + (int)worldBorder.getSize();
-        final int maxZ = minZ + (int)worldBorder.getSize();
-        (new BukkitRunnable() {
+        final int minX = (int) (worldBorder.getCenter().getX() - worldBorder.getSize() / 2.0D);
+        final int minZ = (int) (worldBorder.getCenter().getZ() - worldBorder.getSize() / 2.0D);
+        final int maxX = minX + (int) worldBorder.getSize();
+        final int maxZ = minZ + (int) worldBorder.getSize();
+
+        task2 = new BukkitRunnable() {
             public void run() {
-                if (!StartGame.lavarising)
-                    return;
+                if (!StartGame.lavarising) return;
+
                 int currentLavaLevel = StartGame.lava;
+
                 List<Location> lavaLocations = new ArrayList<>();
+
                 for (int x = minX; x <= maxX; x++) {
                     for (int z = minZ; z <= maxZ; z++) {
-                        Location location = new Location(world, x, currentLavaLevel, z);
-                        if (StartGame.lava == plugin.getConfig().getInt("lava-border") - 1) {
-                            if (location.getBlock().getType() == Material.AIR)
+                        for (int y = 0; y <= currentLavaLevel; y++) {
+                            Location location = new Location(world, x, y, z);
+
+                            Material blockType = location.getBlock().getType();
+                            if (blockType == Material.AIR || blockType == Material.WATER || blockType == Material.CAVE_AIR) {
                                 lavaLocations.add(location);
-                        } else {
-                            lavaLocations.add(location);
+                            }
                         }
                     }
                 }
-                for (Location location : lavaLocations)
+
+                for (Location location : lavaLocations) {
                     location.getBlock().setType(Material.LAVA, false);
+                }
+
                 if (StartGame.lava == plugin.getConfig().getInt("pvp-allow") && !StartGame.PvP) {
                     StartGame.PvP = true;
                     for (Player player : Bukkit.getOnlinePlayers()) {
@@ -386,6 +405,7 @@ public class StartGame implements Listener {
                         player.sendTitle(title, subtitle);
                     }
                 }
+
                 if (StartGame.lava == plugin.getConfig().getInt("lava-border")) {
                     for (Player player : Bukkit.getOnlinePlayers()) {
                         if (player.getLocation().getY() <= plugin.getConfig().getInt("border-kill")) {
@@ -403,10 +423,11 @@ public class StartGame implements Listener {
 
                     this.cancel();
                 }
+
                 if (StartGame.lava < plugin.getConfig().getInt("lava-border")) {
                     StartGame.lava++;
                 }
             }
-        }).runTaskTimer(plugin, 0L, 20L * plugin.getConfig().getInt("lava-delay"));
+        };task2.runTaskTimer(plugin, 0L, 20L * plugin.getConfig().getInt("lava-delay"));
     }
 }

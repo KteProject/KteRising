@@ -26,7 +26,6 @@ public class PlayerJoin implements Listener {
         Player player = event.getPlayer();
 
         if (StartGame.match) {
-            player.sendMessage(String.valueOf(StartGame.leavedPlayers.get(player.getUniqueId())));
             if(StartGame.leavedPlayers.get(player.getUniqueId()) != null) {
                 player.setGameMode(GameMode.SURVIVAL);
                 player.teleport(StartGame.leavedPlayers.get(player.getUniqueId()));
