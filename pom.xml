@@ -6,7 +6,7 @@
 
     <groupId>com</groupId>
     <artifactId>KteRising</artifactId>
-    <version>1.5.2</version>
+    <version>1.5.4</version>
     <packaging>jar</packaging>
 
     <name>KteRising</name>
