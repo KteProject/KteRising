@@ -1,9 +1,11 @@
 package com.kterising.Functions;
 
 import com.kterising.Command.Command;
+import com.kterising.Listeners.AutoStart;
 import com.kterising.Team.Team;
 import com.kterising.Team.TeamManager;
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -31,6 +33,9 @@ public class StartGame implements Listener {
     public static Boolean end = false;
     private static BukkitRunnable task;
     private static BukkitRunnable task2;
+    private static BukkitRunnable task3;
+    private static BukkitRunnable task4;
+
 
     public static HashMap<UUID, Location> leavedPlayers = new HashMap<UUID, Location>();
 
@@ -281,19 +286,12 @@ public class StartGame implements Listener {
     public static int centerZ = 0;
 
     public static void resetWorldBorder(Plugin plugin) {
-        if (task != null) {
-            task.cancel();
-            task = null;
-        }
+        if (task != null) { task.cancel(); task = null; }
+        if (task2 != null) { task2.cancel(); task2 = null; }
+        if (task3 != null) { task3.cancel(); task3 = null; }
+        if (task4 != null) { task4.cancel(); task4 = null; }
 
-        if (task2 != null) {
-            task2.cancel();
-            task2 = null;
-        }
-
-        centerX += 1000;
-        centerZ += 1000;
-
+        AutoStart.stopCountdown();
         StartGame.lavarising = false;
         StartGame.match = false;
         StartGame.PvP = false;
@@ -307,14 +305,22 @@ public class StartGame implements Listener {
         Command.selectedmode = false;
         modManager.resetVotes();
 
-
+        centerX += 2000;
+        centerZ += 2000;
         World world = Bukkit.getWorld("world");
-        assert world != null;
+        if (world == null) return;
+
         WorldBorder worldBorder = world.getWorldBorder();
-        worldBorder.setSize(plugin.getConfig().getInt("world-size"));
         worldBorder.setCenter(centerX, centerZ);
-        worldBorder.setDamageAmount(5);
-        worldBorder.setDamageBuffer(2);
+
+        task3 = new BukkitRunnable() {
+            @Override
+            public void run() {
+                worldBorder.setSize(plugin.getConfig().getInt("world-size"));
+                worldBorder.setDamageAmount(5);
+                worldBorder.setDamageBuffer(2);
+            }
+        };task3.runTaskLater(plugin, 20L);
 
         world.setSpawnLocation(centerX, 100, centerZ);
 
@@ -335,36 +341,51 @@ public class StartGame implements Listener {
             }
         }
 
-
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.getInventory().clear();
             player.setGameMode(GameMode.ADVENTURE);
             player.setHealth(20);
             player.setFoodLevel(20);
+            TeamManager.removePlayerFromTeam(player);
+        }
 
-            for (int y = 60; y < 100; y++) {
-                Location loc = new Location(world, centerX, y, centerZ);
-                if (world.getBlockAt(loc).getType() == Material.AIR) {
-                    player.teleport(loc);
-
-                    player.setBedSpawnLocation(loc, true);
-                    break;
+        task4 = new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    for (int y = 60; y < 100; y++) {
+                        Location loc = new Location(world, centerX, y, centerZ);
+                        if (world.getBlockAt(loc).getType() == Material.AIR) {
+                            player.teleport(loc);
+                            player.setBedSpawnLocation(loc, true);
+                            break;
+                        }
+                    }
+                    SpecialItems.giveSpecialItems(player);
+                    TeamManager.assignPlayerToTeam(player);
                 }
             }
-            SpecialItems.giveSpecialItems(player);
-            TeamManager.removePlayerFromTeam(player);
-            TeamManager.assignPlayerToTeam(player);
+        };task4.runTaskLater(plugin, 40L);
+
+        if (plugin.getConfig().getBoolean("player-start")) {
+            if (Bukkit.getOnlinePlayers().size() >= plugin.getConfig().getInt("player-start-count")) {
+                if (AutoStart.autostartTask == null) {
+                    AutoStart.startCountdown(plugin);
+                }
+            }
         }
     }
 
-    public static void upLava(final Plugin plugin) {
 
+
+    public static void upLava(final Plugin plugin) {
         if (task2 != null && !task2.isCancelled()) {
             task2.cancel();
         }
 
         final World world = Bukkit.getWorld("world");
-        assert world != null;
+        if (world == null) return;
+
         final WorldBorder worldBorder = world.getWorldBorder();
         final int minX = (int) (worldBorder.getCenter().getX() - worldBorder.getSize() / 2.0D);
         final int minZ = (int) (worldBorder.getCenter().getZ() - worldBorder.getSize() / 2.0D);
@@ -377,47 +398,57 @@ public class StartGame implements Listener {
 
                 int currentLavaLevel = StartGame.lava;
 
-                List<Location> lavaLocations = new ArrayList<>();
+                for (int cx = minX >> 4; cx <= maxX >> 4; cx++) {
+                    for (int cz = minZ >> 4; cz <= maxZ >> 4; cz++) {
+                        Chunk chunk = world.getChunkAt(cx, cz);
+                        if (!chunk.isLoaded()) chunk.load();
 
-                for (int x = minX; x <= maxX; x++) {
-                    for (int z = minZ; z <= maxZ; z++) {
-                        for (int y = 0; y <= currentLavaLevel; y++) {
-                            Location location = new Location(world, x, y, z);
+                        for (int x = cx << 4; x < (cx << 4) + 16; x++) {
+                            for (int z = cz << 4; z < (cz << 4) + 16; z++) {
+                                for (int y = Math.max(0, currentLavaLevel - 1); y <= currentLavaLevel; y++) {
+                                    Block block = world.getBlockAt(x, y, z);
+                                    Material type = block.getType();
 
-                            Material blockType = location.getBlock().getType();
-                            if (blockType == Material.AIR || blockType == Material.WATER || blockType == Material.CAVE_AIR) {
-                                lavaLocations.add(location);
+                                    if (type == Material.AIR || type == Material.WATER || type == Material.CAVE_AIR) {
+                                        block.setType(Material.LAVA, false);
+                                    }
+                                }
                             }
                         }
                     }
                 }
 
-                for (Location location : lavaLocations) {
-                    location.getBlock().setType(Material.LAVA, false);
-                }
-
                 if (StartGame.lava == plugin.getConfig().getInt("pvp-allow") && !StartGame.PvP) {
                     StartGame.PvP = true;
                     for (Player player : Bukkit.getOnlinePlayers()) {
-                        String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.pvp-allow.title")));
-                        String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.pvp-allow.sub")));
-                        player.getWorld().playSound(player.getLocation(), StartGame.getSoundFromConfig(plugin, "sound.pvp-sound"), 1.0F, 1.0F);
+                        String title = ChatColor.translateAlternateColorCodes('&',
+                                Objects.requireNonNull(MessagesConfig.get().getString("title.pvp-allow.title")));
+                        String subtitle = ChatColor.translateAlternateColorCodes('&',
+                                Objects.requireNonNull(MessagesConfig.get().getString("title.pvp-allow.sub")));
+                        player.getWorld().playSound(player.getLocation(),
+                                StartGame.getSoundFromConfig(plugin, "sound.pvp-sound"), 1.0F, 1.0F);
                         player.sendTitle(title, subtitle);
                     }
                 }
 
                 if (StartGame.lava == plugin.getConfig().getInt("lava-border")) {
+                    int borderKillLevel = plugin.getConfig().getInt("border-kill");
                     for (Player player : Bukkit.getOnlinePlayers()) {
-                        if (player.getLocation().getY() <= plugin.getConfig().getInt("border-kill")) {
+                        if (player.getLocation().getY() <= borderKillLevel) {
                             player.setHealth(0.0D);
                         }
                     }
+
                     StartGame.live(plugin);
                     worldBorder.setSize(3.0D, 180L);
+
                     for (Player player : Bukkit.getOnlinePlayers()) {
-                        String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.worldborder-shrink.title")));
-                        String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.worldborder-shrink.sub")));
-                        player.getWorld().playSound(player.getLocation(), StartGame.getSoundFromConfig(plugin, "sound.shrink-sound"), 1.0F, 1.0F);
+                        String title = ChatColor.translateAlternateColorCodes('&',
+                                Objects.requireNonNull(MessagesConfig.get().getString("title.worldborder-shrink.title")));
+                        String subtitle = ChatColor.translateAlternateColorCodes('&',
+                                Objects.requireNonNull(MessagesConfig.get().getString("title.worldborder-shrink.sub")));
+                        player.getWorld().playSound(player.getLocation(),
+                                StartGame.getSoundFromConfig(plugin, "sound.shrink-sound"), 1.0F, 1.0F);
                         player.sendTitle(title, subtitle);
                     }
 

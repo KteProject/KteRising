@@ -14,13 +14,14 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class AutoStart implements Listener {
     private final KteRising plugin;
-    private static BukkitRunnable autostartTask;
+    public static BukkitRunnable autostartTask;
     private static final AtomicInteger players = new AtomicInteger(0);
     private static final AtomicInteger time = new AtomicInteger(0);
 
@@ -36,7 +37,7 @@ public class AutoStart implements Listener {
             if (plugin.getConfig().getBoolean("player-start")) {
                 if (players.get() >= plugin.getConfig().getInt("player-start-count")) {
                     if (autostartTask == null) {
-                        startCountdown();
+                        startCountdown(plugin);
                     }
                 }
             }
@@ -60,7 +61,7 @@ public class AutoStart implements Listener {
         players.set(Bukkit.getOnlinePlayers().size());
     }
 
-    private void startCountdown() {
+    public static void startCountdown(Plugin plugin) {
         autostartTask = new BukkitRunnable() {
             @Override
             public void run() {
@@ -91,11 +92,11 @@ public class AutoStart implements Listener {
         time.set(plugin.getConfig().getInt("player-start-time"));
     }
 
-    private void stopCountdown() {
+    public static void stopCountdown() {
         if (autostartTask != null) {
             autostartTask.cancel();
             autostartTask = null;
         }
-        time.set(plugin.getConfig().getInt("player-start-time"));
+        time.set(KteRising.getInstance().getConfig().getInt("player-start-time"));
     }
 }

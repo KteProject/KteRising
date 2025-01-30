@@ -18,9 +18,12 @@ import java.util.Random;
 import java.util.logging.Logger;
 
 public final class KteRising extends JavaPlugin {
+    private static KteRising instance;
+
 
     @Override
     public void onEnable() {
+        instance = this;
 
         Logger logger = this.getLogger();
 
@@ -211,6 +214,7 @@ public final class KteRising extends JavaPlugin {
             Bukkit.getPluginManager().registerEvents(new AutoMelt(this), this);
         }
         Bukkit.getPluginManager().registerEvents(new PlayerDamage(), this);
+        Bukkit.getPluginManager().registerEvents(new LavaWaterFix(), this);
         Bukkit.getPluginManager().registerEvents(new PlayerDeath(this), this);
         Bukkit.getPluginManager().registerEvents(new PlayerJoin(), this);
         Bukkit.getPluginManager().registerEvents(new PlayerQuit(this), this);
@@ -232,5 +236,9 @@ public final class KteRising extends JavaPlugin {
     @Override
     public void onDisable() {
         getLogger().info(ChatColor.GOLD + "[KteRising]" + ChatColor.RED + "Plugin Disabled!");
+        instance = null;
+    }
+    public static KteRising getInstance() {
+        return instance;
     }
 }
