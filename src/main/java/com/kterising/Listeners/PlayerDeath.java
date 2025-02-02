@@ -2,6 +2,7 @@ package com.kterising.Listeners;
 
 import com.kterising.Functions.MessagesConfig;
 import com.kterising.Functions.PlayerStats;
+import com.kterising.Functions.Rewards;
 import com.kterising.Functions.StartGame;
 import com.kterising.KteRising;
 import org.bukkit.ChatColor;
@@ -25,8 +26,10 @@ public class PlayerDeath implements Listener {
         event.getEntity().sendTitle(title,subtitle);
         StartGame.live(plugin);
         PlayerStats.addDeath(event.getEntity());
+        Rewards.deathPlayer(event.getEntity());
         if (event.getEntity().getKiller() != null) {
             PlayerStats.addKill(event.getEntity().getKiller());
+            Rewards.killPlayer(event.getEntity().getKiller());
         }
     }
 }

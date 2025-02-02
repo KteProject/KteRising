@@ -14,6 +14,8 @@ classic-start-time: 600
 op-start-time: 60
 #It sets the world size. (Default= 112)
 world-size: 112
+#World name where features will be applied
+world-name: "world"
 #It writes when PvP will be enabled.
 pvp-allow: 80
 #It writes how often the lava will rise, in seconds.
@@ -31,6 +33,9 @@ water-to-ice:
     high-y: 63
 #If it is false the spectators can generate chunks
 spectators-generate-chunks: true
+#If it is true the water with lava does not turn to obsidian
+#(But if lava is in the highest layer, players can turn it into obsidian.)
+obsidian-fix: true
 
 #For example, people don't get themselves killed by putting a door. When the lava reaches a certain layer, it will check and if a person is below this layer, it will kill them.
 #Which layer should it check underneath?
@@ -57,3 +62,11 @@ custom-death-messages:
   havent-killer: "&c☠ &a%player%"
   have-killer: "&c⚔ &a%player% &cfrom &a%killer%"
 
+rewards:
+  enabled: true
+  kill-player:
+    - "eco give %player% 5"
+  win-player:
+    - "eco give %player% 3"
+  death-player:
+    - "eco give %player% -3"

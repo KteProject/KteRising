@@ -84,16 +84,23 @@ public final class KteRising extends JavaPlugin {
         StartGame.leavedPlayers.clear();
         Command.selectedmode = false;
 
-        World world = Bukkit.getWorld("world");
-        assert world != null;
+        String worldName = getConfig().getString("world-name", "world");
+        World world = Bukkit.getWorld(worldName);
+
+        if (world == null) {
+            getLogger().severe(ChatColor.RED + "❌ It couldn't load the world. The server is shutting down...");
+            Bukkit.shutdown();
+            return;
+        }
+
         WorldBorder worldBorder = world.getWorldBorder();
         worldBorder.setSize(getConfig().getInt("world-size"));
         worldBorder.setCenter(0, 0);
         worldBorder.setDamageAmount(5);
         worldBorder.setDamageBuffer(2);
 
-        if(getConfig().getBoolean("spectators-generate-chunks")) {
-            Objects.requireNonNull(getServer().getWorld("world")).setGameRule(GameRule.SPECTATORS_GENERATE_CHUNKS, false);
+        if (getConfig().getBoolean("spectators-generate-chunks")) {
+            world.setGameRule(GameRule.SPECTATORS_GENERATE_CHUNKS, false);
         }
 
         int minX = (int) (worldBorder.getCenter().getX() - worldBorder.getSize() / 2);
@@ -211,16 +218,19 @@ public final class KteRising extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new AutoStart(this), this);
 
         if(getConfig().getBoolean("automelt")) {
-            Bukkit.getPluginManager().registerEvents(new AutoMelt(this), this);
+            Bukkit.getPluginManager().registerEvents(new AutoMelt(), this);
         }
         Bukkit.getPluginManager().registerEvents(new PlayerDamage(), this);
-        Bukkit.getPluginManager().registerEvents(new LavaWaterFix(), this);
+        if(getConfig().getBoolean("obsidian-fix")) {
+            Bukkit.getPluginManager().registerEvents(new LavaWaterFix(this), this);
+        }
         Bukkit.getPluginManager().registerEvents(new PlayerDeath(this), this);
         Bukkit.getPluginManager().registerEvents(new PlayerJoin(), this);
         Bukkit.getPluginManager().registerEvents(new PlayerQuit(this), this);
         Bukkit.getPluginManager().registerEvents(new NightVision(), this);
+        Bukkit.getPluginManager().registerEvents(new FoodLevelChange(), this);
         if(getConfig().getBoolean("autopickup")) {
-            Bukkit.getPluginManager().registerEvents(new AutoPickUp(this), this);
+            Bukkit.getPluginManager().registerEvents(new AutoPickUp(), this);
         }
         Bukkit.getPluginManager().registerEvents(new TeamGUI(), this);
         TeamManager.getInstance().initialize(this);

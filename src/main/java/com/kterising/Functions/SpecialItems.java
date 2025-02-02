@@ -73,14 +73,18 @@ public class SpecialItems implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        ItemStack item = event.getCurrentItem();
-        if (item != null && item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
-            String displayName = item.getItemMeta().getDisplayName();
-            String voteName = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("item.vote-name")));
-            String teamName = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("item.team-name")));
+        if (event.getWhoClicked() instanceof Player) {
+            Player player = (Player) event.getWhoClicked();
+            if (player.isOp()) return;
 
-            if (displayName.equals(voteName) || displayName.equals(teamName)) {
-                event.setCancelled(true);
+            ItemStack item = event.getCurrentItem();
+            if (item != null && item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
+                String displayName = item.getItemMeta().getDisplayName();
+                String voteName = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("item.vote-name")));
+                String teamName = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("item.team-name")));
+                if (displayName.equals(voteName) || displayName.equals(teamName)) {
+                    event.setCancelled(true);
+                }
             }
         }
     }

@@ -1,6 +1,5 @@
 package com.kterising.Listeners;
 
-import com.kterising.KteRising;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -11,11 +10,9 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Random;
 
 public class AutoPickUp implements Listener {
-    private final KteRising plugin;
     private final Random random;
 
-    public AutoPickUp(KteRising plugin) {
-        this.plugin = plugin;
+    public AutoPickUp() {
         this.random = new Random();
     }
 
@@ -23,7 +20,6 @@ public class AutoPickUp implements Listener {
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
         ItemStack droppedItem = null;
-        if(plugin.getConfig().getBoolean("autopickup")) {
             double chance = random.nextDouble();
             switch (event.getBlock().getType()) {
                 case STONE:
@@ -127,7 +123,6 @@ public class AutoPickUp implements Listener {
                 default:
                     break;
             }
-        }
 
         if (droppedItem != null) {
             event.setDropItems(false);

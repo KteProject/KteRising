@@ -11,9 +11,10 @@ public class PlayerDamage implements Listener {
     public void playerDamage(EntityDamageEvent event) {
         if(event.getEntity() instanceof Player) {
             if(!StartGame.PvP) {
-                event.getEntity();
                 event.setCancelled(true);
             }
+        } else if(!StartGame.match) {
+            event.setCancelled(true);
         }
     }
 }

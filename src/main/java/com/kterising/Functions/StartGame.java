@@ -44,6 +44,15 @@ public class StartGame implements Listener {
         return Sound.valueOf(plugin.getConfig().getString(path));
     }
 
+    private static World getConfiguredWorld(Plugin plugin) {
+        String worldName = plugin.getConfig().getString("world-name", "world");
+        World world = Bukkit.getWorld(worldName);
+        if (world == null) {
+            plugin.getLogger().warning(ChatColor.RED + "❌ World '" + worldName + "' not found. Please check your config.yml!");
+        }
+        return world;
+    }
+
     public static void skipTime(Plugin plugin) {
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (lavarising) {
@@ -55,128 +64,67 @@ public class StartGame implements Listener {
         }
     }
 
-    public static void start(Plugin plugin) {
-        if (match) {
-            return;
+    public static void giveItemsFromConfig(Player player) {
+        List<Map<?, ?>> items = (List<Map<?, ?>>) ItemsConfig.getConfig().get("modes." + mode + ".items");
+
+        for (Map<?, ?> itemData : items) {
+            try {
+                Material material = Material.valueOf((String) itemData.get("material"));
+                int amount = itemData.containsKey("amount") ? (int) itemData.get("amount") : 1;
+
+                ItemStack itemStack = new ItemStack(material, amount);
+
+                if (itemData.containsKey("name")) {
+                    ItemMeta meta = itemStack.getItemMeta();
+                    if (meta != null) {
+                        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', (String) itemData.get("name")));
+                        itemStack.setItemMeta(meta);
+                    }
+                }
+
+                if (itemData.containsKey("enchantments")) {
+                    Map<String, Integer> enchantments = (Map<String, Integer>) itemData.get("enchantments");
+                    for (String key : enchantments.keySet()) {
+                        Enchantment enchantment = Enchantment.getByName(key);
+                        if (enchantment != null) {
+                            itemStack.addUnsafeEnchantment(enchantment, enchantments.get(key));
+                        }
+                    }
+                }
+
+                player.getInventory().addItem(itemStack);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+    }
+
+    public static void start(final Plugin plugin) {
+        if (match)
+            return;
 
         lavarising = false;
         time = false;
         match = true;
         lava = plugin.getConfig().getInt("lava-start-block");
+        if ("Classic".equals(mode) || "Elytra".equals(mode) || "Trident".equals(mode)) {
+            seconds = plugin.getConfig().getInt("classic-start-time");
+        } else if ("OP".equals(mode)|| "UltraOP".equals(mode) || "ElytraOP".equals(mode) || "TridentOP".equals(mode)) {
+            seconds = plugin.getConfig().getInt("op-start-time");
+        }
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.getInventory().clear();
-            player.closeInventory();
-            player.setHealth(20);
+            player.setHealth(20.0D);
             player.setFoodLevel(20);
             player.setGameMode(GameMode.SURVIVAL);
+            giveItemsFromConfig(player);
 
             String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.start-game.title")));
             String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.start-game.sub")));
             player.sendTitle(title, subtitle);
-            player.getWorld().playSound(player.getLocation(), getSoundFromConfig(plugin, "sound.start-sound"), 1.0f, 1.0f);
-
+            player.getWorld().playSound(player.getLocation(), getSoundFromConfig(plugin, "sound.start-sound"), 1.0F, 1.0F);
             PvP = false;
-
-            ItemStack netheritePickaxe = new ItemStack(Material.valueOf(ItemsConfig.getConfig().getString("items.pickaxe.material")));
-            ItemMeta pickaxeMeta = netheritePickaxe.getItemMeta();
-            assert pickaxeMeta != null;
-            pickaxeMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(ItemsConfig.getConfig().getString("items.pickaxe.name"))));
-            netheritePickaxe.setItemMeta(pickaxeMeta);
-            netheritePickaxe.addUnsafeEnchantment(Enchantment.DIG_SPEED, 5);
-
-            ItemStack cookedBeef = new ItemStack(Material.valueOf(ItemsConfig.getConfig().getString("items.food.material")), ItemsConfig.getConfig().getInt("items.food.amount"));
-            ItemMeta foodMeta = cookedBeef.getItemMeta();
-            assert foodMeta != null;
-            foodMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(ItemsConfig.getConfig().getString("items.food.name"))));
-            cookedBeef.setItemMeta(foodMeta);
-
-            ItemStack log = new ItemStack(Material.valueOf(ItemsConfig.getConfig().getString("items.oak.material")), ItemsConfig.getConfig().getInt("items.oak.amount"));
-
-            if ("Classic".equals(mode)) {
-                seconds = plugin.getConfig().getInt("classic-start-time");
-                player.getInventory().addItem(netheritePickaxe, cookedBeef, log);
-            } else if ("OP".equals(mode)) {
-                seconds = plugin.getConfig().getInt("op-start-time");
-                ItemStack diamond = new ItemStack(Material.DIAMOND, 64);
-                ItemStack iron = new ItemStack(Material.IRON_INGOT, 64);
-                ItemStack stone = new ItemStack(Material.COBBLESTONE, 576);
-                player.getInventory().addItem(netheritePickaxe, cookedBeef, diamond, iron, stone, log);
-            } else if ("Elytra".equals(mode)) {
-                seconds = plugin.getConfig().getInt("classic-start-time");
-                ItemStack elytra = new ItemStack(Material.valueOf(ItemsConfig.getConfig().getString("items.elytra.material")), ItemsConfig.getConfig().getInt("items.elytra.amount"));
-                ItemMeta elytraMeta = elytra.getItemMeta();
-                assert elytraMeta != null;
-                elytraMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(ItemsConfig.getConfig().getString("items.elytra.name"))));
-                elytra.setItemMeta(elytraMeta);
-                ItemStack firework = new ItemStack(Material.valueOf(ItemsConfig.getConfig().getString("items.firework.material")), ItemsConfig.getConfig().getInt("items.firework.amount"));
-                player.getInventory().addItem(netheritePickaxe, cookedBeef, log, elytra, firework);
-            } else if ("ElytraOP".equals(mode)) {
-                seconds = plugin.getConfig().getInt("op-start-time");
-                ItemStack diamond = new ItemStack(Material.DIAMOND, 64);
-                ItemStack iron = new ItemStack(Material.IRON_INGOT, 64);
-                ItemStack stone = new ItemStack(Material.COBBLESTONE, 576);
-                ItemStack elytra = new ItemStack(Material.valueOf(ItemsConfig.getConfig().getString("items.elytra.material")), ItemsConfig.getConfig().getInt("items.elytra.amount"));
-                ItemMeta elytraMeta = elytra.getItemMeta();
-                assert elytraMeta != null;
-                elytraMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(ItemsConfig.getConfig().getString("items.elytra.name"))));
-                elytra.setItemMeta(elytraMeta);
-                ItemStack firework = new ItemStack(Material.valueOf(ItemsConfig.getConfig().getString("items.firework.material")), ItemsConfig.getConfig().getInt("items.firework.op-amount"));
-                player.getInventory().addItem(netheritePickaxe, cookedBeef, diamond, iron, stone, log, firework, elytra);
-            } else if ("Trident".equals(mode)) {
-                seconds = plugin.getConfig().getInt("classic-start-time");
-                ItemStack tridentRiptide = new ItemStack(Material.valueOf(ItemsConfig.getConfig().getString("items.trident.material")));
-                ItemMeta tridentRiptideMeta = tridentRiptide.getItemMeta();
-                assert tridentRiptideMeta != null;
-                tridentRiptideMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(ItemsConfig.getConfig().getString("items.trident.riptide-name"))));
-                tridentRiptide.setItemMeta(tridentRiptideMeta);
-                tridentRiptide.addUnsafeEnchantment(Enchantment.RIPTIDE, 3);
-
-                ItemStack tridentLoyalty = new ItemStack(Material.valueOf(ItemsConfig.getConfig().getString("items.trident.material")));
-                ItemMeta tridentLoyaltyMeta = tridentLoyalty.getItemMeta();
-                assert tridentLoyaltyMeta != null;
-                tridentLoyaltyMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(ItemsConfig.getConfig().getString("items.trident.loyalty-name"))));
-                tridentLoyalty.setItemMeta(tridentLoyaltyMeta);
-                tridentLoyalty.addUnsafeEnchantment(Enchantment.LOYALTY, 3);
-
-                player.getInventory().addItem(netheritePickaxe, cookedBeef, log, tridentRiptide, tridentLoyalty);
-            } else if ("TridentOP".equals(mode)) {
-                seconds = plugin.getConfig().getInt("op-start-time");
-                ItemStack diamond = new ItemStack(Material.DIAMOND, 64);
-                ItemStack iron = new ItemStack(Material.IRON_INGOT, 64);
-                ItemStack stone = new ItemStack(Material.COBBLESTONE, 576);
-                ItemStack tridentRiptide = new ItemStack(Material.valueOf(ItemsConfig.getConfig().getString("items.trident.material")));
-                ItemMeta tridentRiptideMeta = tridentRiptide.getItemMeta();
-                assert tridentRiptideMeta != null;
-                tridentRiptideMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(ItemsConfig.getConfig().getString("items.trident.riptide-name"))));
-                tridentRiptide.setItemMeta(tridentRiptideMeta);
-                tridentRiptide.addUnsafeEnchantment(Enchantment.RIPTIDE, 3);
-
-                ItemStack tridentLoyalty = new ItemStack(Material.valueOf(ItemsConfig.getConfig().getString("items.trident.material")));
-                ItemMeta tridentLoyaltyMeta = tridentLoyalty.getItemMeta();
-                assert tridentLoyaltyMeta != null;
-                tridentLoyaltyMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(ItemsConfig.getConfig().getString("items.trident.loyalty-name"))));
-                tridentLoyalty.setItemMeta(tridentLoyaltyMeta);
-                tridentLoyalty.addUnsafeEnchantment(Enchantment.LOYALTY, 3);
-
-                player.getInventory().addItem(netheritePickaxe, cookedBeef, diamond, iron, stone, log, tridentRiptide, tridentLoyalty);
-            } else if ("UltraOP".equals(mode)) {
-                seconds = plugin.getConfig().getInt("op-start-time");
-                ItemStack diamond = new ItemStack(Material.DIAMOND, 64);
-                ItemStack iron = new ItemStack(Material.IRON_INGOT, 64);
-                ItemStack stone = new ItemStack(Material.COBBLESTONE, 576);
-                ItemStack goldenApple = new ItemStack(Material.valueOf(ItemsConfig.getConfig().getString("items.ultra-food.apple.material")), ItemsConfig.getConfig().getInt("items.ultra-food.apple.amount"));
-                ItemStack bow = new ItemStack(Material.valueOf(ItemsConfig.getConfig().getString("items.bow.material")));
-                ItemMeta bowMeta = bow.getItemMeta();
-                assert bowMeta != null;
-                bowMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(ItemsConfig.getConfig().getString("items.bow.bow-name"))));
-                bow.setItemMeta(bowMeta);
-                ItemStack arrow = new ItemStack(Material.valueOf(ItemsConfig.getConfig().getString("items.arrow.material")), ItemsConfig.getConfig().getInt("items.arrow.amount"));
-                ItemStack goldencarrot = new ItemStack(Material.valueOf(ItemsConfig.getConfig().getString("items.ultra-food.carrot.material")), ItemsConfig.getConfig().getInt("items.ultra-food.carrot.amount"));
-
-                player.getInventory().addItem(netheritePickaxe, cookedBeef, diamond, iron, stone, log, goldenApple, bow, arrow, goldencarrot);
-            }
         }
 
 
@@ -249,6 +197,7 @@ public class StartGame implements Listener {
                 if (!win) {
                     for (Player player : winnerTeam.getPlayers()) {
                         PlayerStats.addWin(player);
+                        Rewards.winPlayer(player);
                     }
                     win = true;
                 }
@@ -307,8 +256,11 @@ public class StartGame implements Listener {
 
         centerX += 2000;
         centerZ += 2000;
-        World world = Bukkit.getWorld("world");
-        if (world == null) return;
+        World world = getConfiguredWorld(plugin);
+        if (world == null) {
+            plugin.getLogger().severe(ChatColor.RED + "❌ World could not be loaded during reset!");
+            return;
+        }
 
         WorldBorder worldBorder = world.getWorldBorder();
         worldBorder.setCenter(centerX, centerZ);
@@ -383,7 +335,7 @@ public class StartGame implements Listener {
             task2.cancel();
         }
 
-        final World world = Bukkit.getWorld("world");
+        World world = getConfiguredWorld(plugin);
         if (world == null) return;
 
         final WorldBorder worldBorder = world.getWorldBorder();
