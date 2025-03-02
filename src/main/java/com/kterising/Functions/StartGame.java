@@ -264,6 +264,7 @@ public class StartGame implements Listener {
 
         WorldBorder worldBorder = world.getWorldBorder();
         worldBorder.setCenter(centerX, centerZ);
+        world.setSpawnLocation(centerX, 100, centerZ);
 
         task3 = new BukkitRunnable() {
             @Override
@@ -274,21 +275,33 @@ public class StartGame implements Listener {
             }
         };task3.runTaskLater(plugin, 20L);
 
-        world.setSpawnLocation(centerX, 100, centerZ);
-
         int minX = (int) (worldBorder.getCenter().getX() - worldBorder.getSize() / 2);
         int minZ = (int) (worldBorder.getCenter().getZ() - worldBorder.getSize() / 2);
         int maxX = minX + (int) worldBorder.getSize();
         int maxZ = minZ + (int) worldBorder.getSize();
 
-        if(plugin.getConfig().getBoolean("water-to-ice.enabled")) {
+        if (plugin.getConfig().getBoolean("water-to-ice.enabled")) {
+            Set<Chunk> loadedChunks = new HashSet<>();
+
             for (int x = minX; x < maxX; x++) {
                 for (int y = plugin.getConfig().getInt("water-to-ice.low-y"); y <= plugin.getConfig().getInt("water-to-ice.high-y"); y++) {
                     for (int z = minZ; z < maxZ; z++) {
+                        Chunk chunk = world.getChunkAt(x >> 4, z >> 4);
+                        if (!chunk.isLoaded()) {
+                            chunk.load();
+                            loadedChunks.add(chunk);
+                        }
+
                         if (world.getBlockAt(x, y, z).getType() == Material.WATER) {
                             world.getBlockAt(x, y, z).setType(Material.ICE);
                         }
                     }
+                }
+            }
+
+            for (Chunk chunk : loadedChunks) {
+                if (chunk.isLoaded()) {
+                    chunk.unload(true);
                 }
             }
         }

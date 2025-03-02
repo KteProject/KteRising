@@ -79,19 +79,22 @@ public class PlaceholderUtil {
     private static String getTeammates(OfflinePlayer player) {
         Team team = TeamManager.getPlayerTeam(Objects.requireNonNull(player.getPlayer()));
 
-        if (team != null) {
-            List<String> teammates = team.getPlayers().stream()
-                    .filter(p -> !p.equals(player.getPlayer()))
-                    .map(HumanEntity::getName)
-                    .collect(Collectors.toList());
+        if (StartGame.match) {
+            if (team != null) {
+                List<String> teammates = team.getPlayers().stream()
+                        .filter(p -> !p.equals(player.getPlayer()))
+                        .map(HumanEntity::getName)
+                        .collect(Collectors.toList());
 
-            if (teammates.isEmpty()) {
-                return ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("messages.no-teammates")));
+                if (teammates.isEmpty()) {
+                    return ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("messages.no-teammates")));
+                } else {
+                    return String.join(", ", teammates);
+                }
             } else {
-                return String.join(", ", teammates);
+                return ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("messages.no-teammates")));
             }
-        } else {
-            return ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("messages.no-team-name")));
         }
+       return ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("vote.wait")));
     }
 }

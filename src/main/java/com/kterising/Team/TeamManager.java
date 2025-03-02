@@ -30,8 +30,8 @@ public class TeamManager {
 
         String translatedTeamSuffix = ChatColor.translateAlternateColorCodes('&', teamSuffix);
 
-        for (char i = 'A'; i <= 'Z'; i++) {
-            teams.add(new Team(i + translatedTeamSuffix, maxSize));
+        for (int i = 1; i <= 50; i++) {
+            teams.add(new Team(i + "." + translatedTeamSuffix, maxSize));
         }
     }
 

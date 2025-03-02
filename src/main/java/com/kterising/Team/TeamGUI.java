@@ -100,12 +100,12 @@ public class TeamGUI implements Listener {
     public static void openTeamMenu(Player player) {
         List<Team> teams = TeamManager.getTeams();
         if (teams == null) {
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    Objects.requireNonNull(MessagesConfig.get().getString("messages.team-load-failed"))));
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("messages.team-load-failed"))));
             return;
         }
 
-        Inventory inv = Bukkit.createInventory(null, 27, ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("messages.team-gui"))));
+        Inventory inv = Bukkit.createInventory(null, 54, ChatColor.translateAlternateColorCodes('&',
+                Objects.requireNonNull(MessagesConfig.get().getString("messages.team-gui"))));
 
         int slot = 0;
         for (Team team : teams) {

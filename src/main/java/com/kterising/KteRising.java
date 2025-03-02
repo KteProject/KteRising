@@ -13,8 +13,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Random;
+import java.util.Set;
 import java.util.logging.Logger;
 
 public final class KteRising extends JavaPlugin {
@@ -99,23 +101,33 @@ public final class KteRising extends JavaPlugin {
         worldBorder.setDamageAmount(5);
         worldBorder.setDamageBuffer(2);
 
-        if (getConfig().getBoolean("spectators-generate-chunks")) {
-            world.setGameRule(GameRule.SPECTATORS_GENERATE_CHUNKS, false);
-        }
-
         int minX = (int) (worldBorder.getCenter().getX() - worldBorder.getSize() / 2);
         int minZ = (int) (worldBorder.getCenter().getZ() - worldBorder.getSize() / 2);
         int maxX = minX + (int) worldBorder.getSize();
         int maxZ = minZ + (int) worldBorder.getSize();
 
-        if(getConfig().getBoolean("water-to-ice.enabled")) {
+        if (getConfig().getBoolean("water-to-ice.enabled")) {
+            Set<Chunk> loadedChunks = new HashSet<>();
+
             for (int x = minX; x < maxX; x++) {
                 for (int y = getConfig().getInt("water-to-ice.low-y"); y <= getConfig().getInt("water-to-ice.high-y"); y++) {
                     for (int z = minZ; z < maxZ; z++) {
+                        Chunk chunk = world.getChunkAt(x >> 4, z >> 4);
+                        if (!chunk.isLoaded()) {
+                            chunk.load();
+                            loadedChunks.add(chunk);
+                        }
+
                         if (world.getBlockAt(x, y, z).getType() == Material.WATER) {
                             world.getBlockAt(x, y, z).setType(Material.ICE);
                         }
                     }
+                }
+            }
+
+            for (Chunk chunk : loadedChunks) {
+                if (chunk.isLoaded()) {
+                    chunk.unload(true);
                 }
             }
         }
@@ -181,6 +193,7 @@ public final class KteRising extends JavaPlugin {
         MessagesConfig.get().addDefault("messages.no-team-name", "&cNo Team");
         MessagesConfig.get().addDefault("messages.no-team", "&cYou don't have a team.");
         MessagesConfig.get().addDefault("messages.no-team-or-dead", "&cYou don't have a team or your teammate is dead.");
+        MessagesConfig.get().addDefault("messages.no-teammates", "&cYou don't have a teammate");
         MessagesConfig.get().addDefault("messages.closest-teammate", "&eYour teammate %player% is %distance%m away %direction%");
         MessagesConfig.get().addDefault("messages.team-joined", "&aYou joined the team: &b%team%");
         MessagesConfig.get().addDefault("messages.team-full", "&cThis team is full.");
@@ -219,6 +232,9 @@ public final class KteRising extends JavaPlugin {
 
         if(getConfig().getBoolean("automelt")) {
             Bukkit.getPluginManager().registerEvents(new AutoMelt(), this);
+        }
+        if(getConfig().getBoolean("spectators-generate-chunks")) {
+            Bukkit.getPluginManager().registerEvents(new Border(), this);
         }
         Bukkit.getPluginManager().registerEvents(new PlayerDamage(), this);
         if(getConfig().getBoolean("obsidian-fix")) {
