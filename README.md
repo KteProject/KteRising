@@ -3,15 +3,20 @@ The Automated Lava Rising plugin and there is customizable config and scoreboard
 We’ve attemped to optimize it as much as possible. (No empty events or imports were used)
 
 # Features
-
-- Winner system
-- 6 preset modes
-- optional shrinking area,
-- Optional server shutdown/activation 
-- optional area adjustment and more.
+- Winner system, 6 preset modes, optional shrinking area,
+- Optional server shutdown/activation, optional area adjustment and more.
 - Items automatically appear on inventory. (configurable)
 - Ores appear on inventory by smelted. (configurable)
 - Game starts automatically after a certain number is reached! (configurable)
+- Randomly selects mode before the game starts
+- Skip the mining part of the classic mode
+- You can freeze the rise of lava
+- You can kill player in certain lava layers
+- Players can vote the mode
+- Oceans and waters turn into ice (can open and close)
+- Custom Death Messages
+- Teams
+- Special Items(Vote, Team)
 
 # Modes
 Classic:
@@ -26,6 +31,9 @@ Classic:
 - Op:
   Starts with pickaxe, 16x steak, x64 diamond, iron, and wood.
 
+- UltraOp:
+  Starts with pickaxe, bow, 16x arrow, 64x diamond, 64x iron, 64x wood, 64x beef, 24x golden carrot and 4x golden apple
+
 - ElytraOp:
   Starts with pickaxe, 64x steak, x16 fireworks, elytra, x64 diamond, iron, and wood.
 
@@ -34,37 +42,65 @@ Classic:
 
 # Commands
 
-- /kterising start:
-Starts the game.
+- /kterising start
+  Starts the game.
 
-- /kterising reload:
-Refreshes the config and messages.
+- /kterising reload
+  Refreshes the config and messages.
 
-- /kterising mode <mode>:
-You activate the mode you want.
+- /kterising mode <mode>
+  You activate the mode you want.
 
-- /kterising skip:
-Skips the mining part of classic modes
+- /kterising skip
+  Skips the mining part of classic modes
 
 - /kterising freeze
-Freezes the rise of lava
+  Freezes the rise of lava
+
+- /kterising vote
+  Opens the vote menu
 
 # PlaceholderAPI
 
 - %KteRising_survivor%
-It’s displays the survivors.
+  It’s displays the survivors.
 
 - %KteRising_mode%
-It shows the selected mods.
+  It shows the selected mods.
 
 - %KteRising_time%
-It’s shows the remaining time and how much time has passed.
+  It’s shows the remaining time and how much time has passed.
 
 - %KteRising_pvp%
-It shows whether PvP is enabled or disabled.
+  It shows whether PvP is enabled or disabled.
 
 - %KteRising_lava%
-It indicates the layer of the lava.
+  It indicates the layer of the lava.
+
+- %KteRising_win%
+  Shows how many matches you won.
+
+- %KteRising_kill%
+  Shows how many times you killed the player
+
+- %KteRising_death%
+  Shows how many times you've died.
+
+- %KteRising_match%
+ Indicates whether the match has started.
+
+- %KteRising_player%
+  Shows your name in the game
+
+- %KteRising_teammode%
+  Indicates whether team mode is active or not
+
+- %KteRising_team%
+  Indicates which team you're on
+
+- %KteRising_teammates%
+  Indicates teammates
+
 
 # Permissions
 
@@ -83,11 +119,17 @@ Allows the skip mining part
 - kterising.risingcommand.freeze
 Allows the lava to freeze(stop)
 
+- kterising.vote (/kterising vote)
+Allows to open vote menu
+
 # Test Results
 
 Intel E5-2699 V4 server with 6CPUs handled 20-30 player comfortably.
 
+# Spigot Link
+[SpigotMC](https://www.spigotmc.org/resources/kterising.112155/)
+
 # Found a Bug or Error or Suggestions
 
 For any plugin-related bugs, errors, or suggestions, please contact us via Discord.
-https://discord.gg/mtwsepRKqH
+[KteProject Discord Server](https://discord.gg/mtwsepRKqH)
