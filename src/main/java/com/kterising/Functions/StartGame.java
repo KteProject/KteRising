@@ -240,6 +240,7 @@ public class StartGame implements Listener {
         if (task3 != null) { task3.cancel(); task3 = null; }
         if (task4 != null) { task4.cancel(); task4 = null; }
 
+
         AutoStart.stopCountdown();
         StartGame.lavarising = false;
         StartGame.match = false;
@@ -263,6 +264,8 @@ public class StartGame implements Listener {
         }
 
         WorldBorder worldBorder = world.getWorldBorder();
+        double currentSize = worldBorder.getSize();
+        worldBorder.setSize(currentSize, 0L);
         worldBorder.setCenter(centerX, centerZ);
         world.setSpawnLocation(centerX, 100, centerZ);
 
