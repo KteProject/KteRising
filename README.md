@@ -1,3 +1,7 @@
+<div align=center>
+<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/111644147/442530403-5a691814-9467-41c0-a3e2-2cd6e24283ae.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20250511%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20250511T192455Z&X-Amz-Expires=300&X-Amz-Signature=d93bc2b62549a4a3ba81b82cba83f82a590cc1f719bb93c0b4042ec8cf29ea37&X-Amz-SignedHeaders=host">
+</div>
+
 # About KteRising
 The Automated Lava Rising plugin and there is customizable config and scoreboard.
 We’ve attemped to optimize it as much as possible. (No empty events or imports were used)
