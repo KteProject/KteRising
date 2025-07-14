@@ -25,6 +25,10 @@ public final class KteRising extends JavaPlugin {
 
     @Override
     public void onEnable() {
+
+        int pluginId = 21969;
+        Metrics metrics  = new Metrics(this, pluginId);
+
         instance = this;
 
         Logger logger = this.getLogger();

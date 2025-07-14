@@ -2,6 +2,7 @@ package com.kterising.Command;
 
 import com.kterising.Functions.*;
 import com.kterising.KteRising;
+import com.kterising.Listeners.AutoStart;
 import com.kterising.Team.TeamGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -68,6 +69,11 @@ public class Command implements CommandExecutor {
                 }
 
                 sender.sendMessage(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("message.command-game-started"))));
+
+                if (AutoStart.autostartTask != null) {
+                    AutoStart.autostartTask.cancel();
+                    AutoStart.autostartTask = null;
+                }
 
                 ModVoteGUI.selectWinningVotes();
                 for (Player player : Bukkit.getOnlinePlayers()) {

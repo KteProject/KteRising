@@ -100,6 +100,11 @@ public class StartGame implements Listener {
     }
 
     public static void start(final Plugin plugin) {
+        if (AutoStart.autostartTask != null) {
+            AutoStart.autostartTask.cancel();
+            AutoStart.autostartTask = null;
+        }
+
         if (match)
             return;
 
@@ -240,108 +245,131 @@ public class StartGame implements Listener {
         if (task3 != null) { task3.cancel(); task3 = null; }
         if (task4 != null) { task4.cancel(); task4 = null; }
 
-
         AutoStart.stopCountdown();
-        StartGame.lavarising = false;
-        StartGame.match = false;
-        StartGame.PvP = false;
-        StartGame.survivor = 0;
-        StartGame.seconds = 0;
-        StartGame.winner = null;
-        StartGame.win = false;
-        StartGame.end = false;
-        StartGame.leavedPlayers.clear();
+        lavarising = false;
+        match = false;
+        PvP = false;
+        survivor = 0;
+        seconds = 0;
+        winner = null;
+        win = false;
+        end = false;
+        leavedPlayers.clear();
         lava = plugin.getConfig().getInt("lava-start-block");
         Command.selectedmode = false;
         modManager.resetVotes();
 
         centerX += 2000;
         centerZ += 2000;
-        World world = getConfiguredWorld(plugin);
-        if (world == null) {
-            plugin.getLogger().severe(ChatColor.RED + "❌ World could not be loaded during reset!");
-            return;
-        }
 
-        WorldBorder worldBorder = world.getWorldBorder();
-        double currentSize = worldBorder.getSize();
-        worldBorder.setSize(currentSize, 0L);
-        worldBorder.setCenter(centerX, centerZ);
+        World world = getConfiguredWorld(plugin);
+        if (world == null) return;
+
+        WorldBorder border = world.getWorldBorder();
+        border.setSize(border.getSize(), 0L);
+        border.setCenter(centerX, centerZ);
         world.setSpawnLocation(centerX, 100, centerZ);
 
         task3 = new BukkitRunnable() {
             @Override
             public void run() {
-                worldBorder.setSize(plugin.getConfig().getInt("world-size"));
-                worldBorder.setDamageAmount(5);
-                worldBorder.setDamageBuffer(2);
+                border.setSize(plugin.getConfig().getInt("world-size"));
+                border.setDamageAmount(5);
+                border.setDamageBuffer(2);
             }
-        };task3.runTaskLater(plugin, 20L);
+        };
+        task3.runTaskLater(plugin, 20L);
 
-        int minX = (int) (worldBorder.getCenter().getX() - worldBorder.getSize() / 2);
-        int minZ = (int) (worldBorder.getCenter().getZ() - worldBorder.getSize() / 2);
-        int maxX = minX + (int) worldBorder.getSize();
-        int maxZ = minZ + (int) worldBorder.getSize();
+        Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player player : onlinePlayers) {
+                    player.getInventory().clear();
+                    player.setGameMode(GameMode.ADVENTURE);
+                    player.setHealth(20);
+                    player.setFoodLevel(20);
+                    player.setSaturation(20f);
+                    player.updateInventory();
+                    TeamManager.removePlayerFromTeam(player);
+                }
+            }
+        }.runTaskLater(plugin, 20L);
+
+        task4 = new BukkitRunnable() {
+            @Override
+            public void run() {
+                Chunk centerChunk = world.getChunkAt(centerX >> 4, centerZ >> 4);
+                if (!centerChunk.isLoaded()) centerChunk.load(true);
+
+                for (Player player : onlinePlayers) {
+                    Location safeSpawn = findSafeLocation(world, centerX, centerZ);
+                    player.teleport(safeSpawn);
+                    player.setBedSpawnLocation(safeSpawn, true);
+
+                    SpecialItems.giveSpecialItems(player);
+                    TeamManager.assignPlayerToTeam(player);
+                }
+            }
+        };
+        task4.runTaskLater(plugin, 40L);
 
         if (plugin.getConfig().getBoolean("water-to-ice.enabled")) {
+            transformWaterToIce(plugin, world, centerX, centerZ);
+        }
+
+        if (plugin.getConfig().getBoolean("player-start")) {
+            if (onlinePlayers.size() >= plugin.getConfig().getInt("player-start-count")) {
+                if (AutoStart.autostartTask == null) {
+                    AutoStart.startCountdown(plugin);
+                }
+            }
+        }
+    }
+
+    private static Location findSafeLocation(World world, int centerX, int centerZ) {
+        for (int y = 60; y < 100; y++) {
+            Location loc = new Location(world, centerX + 0.5, y, centerZ + 0.5);
+            if (world.getBlockAt(loc).getType() == Material.AIR &&
+                    world.getBlockAt(loc.clone().add(0, 1, 0)).getType() == Material.AIR) {
+                return loc;
+            }
+        }
+        return new Location(world, centerX + 0.5, 100, centerZ + 0.5);
+    }
+
+    private static void transformWaterToIce(Plugin plugin, World world, int centerX, int centerZ) {
+        int size = plugin.getConfig().getInt("world-size");
+        int minX = centerX - size / 2;
+        int minZ = centerZ - size / 2;
+        int maxX = centerX + size / 2;
+        int maxZ = centerZ + size / 2;
+        int lowY = plugin.getConfig().getInt("water-to-ice.low-y");
+        int highY = plugin.getConfig().getInt("water-to-ice.high-y");
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
             Set<Chunk> loadedChunks = new HashSet<>();
-
             for (int x = minX; x < maxX; x++) {
-                for (int y = plugin.getConfig().getInt("water-to-ice.low-y"); y <= plugin.getConfig().getInt("water-to-ice.high-y"); y++) {
-                    for (int z = minZ; z < maxZ; z++) {
-                        Chunk chunk = world.getChunkAt(x >> 4, z >> 4);
-                        if (!chunk.isLoaded()) {
-                            chunk.load();
-                            loadedChunks.add(chunk);
-                        }
+                for (int z = minZ; z < maxZ; z++) {
+                    Chunk chunk = world.getChunkAt(x >> 4, z >> 4);
+                    if (!chunk.isLoaded()) {
+                        chunk.load();
+                        loadedChunks.add(chunk);
+                    }
 
-                        if (world.getBlockAt(x, y, z).getType() == Material.WATER) {
-                            world.getBlockAt(x, y, z).setType(Material.ICE);
+                    for (int y = lowY; y <= highY; y++) {
+                        Block block = world.getBlockAt(x, y, z);
+                        if (block.getType() == Material.WATER) {
+                            block.setType(Material.ICE);
                         }
                     }
                 }
             }
 
             for (Chunk chunk : loadedChunks) {
-                if (chunk.isLoaded()) {
-                    chunk.unload(true);
-                }
+                if (chunk.isLoaded()) chunk.unload(true);
             }
-        }
-
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            player.getInventory().clear();
-            player.setGameMode(GameMode.ADVENTURE);
-            player.setHealth(20);
-            player.setFoodLevel(20);
-            TeamManager.removePlayerFromTeam(player);
-        }
-
-        task4 = new BukkitRunnable() {
-            @Override
-            public void run() {
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    for (int y = 60; y < 100; y++) {
-                        Location loc = new Location(world, centerX, y, centerZ);
-                        if (world.getBlockAt(loc).getType() == Material.AIR) {
-                            player.teleport(loc);
-                            player.setBedSpawnLocation(loc, true);
-                            break;
-                        }
-                    }
-                    SpecialItems.giveSpecialItems(player);
-                    TeamManager.assignPlayerToTeam(player);
-                }
-            }
-        };task4.runTaskLater(plugin, 40L);
-
-        if (plugin.getConfig().getBoolean("player-start")) {
-            if (Bukkit.getOnlinePlayers().size() >= plugin.getConfig().getInt("player-start-count")) {
-                if (AutoStart.autostartTask == null) {
-                    AutoStart.startCountdown(plugin);
-                }
-            }
-        }
+        }, 40L);
     }
 
 

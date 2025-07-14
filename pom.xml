@@ -6,7 +6,7 @@
 
     <groupId>com</groupId>
     <artifactId>KteRising</artifactId>
-    <version>1.6.2</version>
+    <version>1.6.4</version>
     <packaging>jar</packaging>
 
     <name>KteRising</name>
@@ -27,7 +27,7 @@
                     <target>14</target>
                 </configuration>
             </plugin>
-        </plugins>
+            </plugins>
     </build>
 
     <repositories>
@@ -62,6 +62,12 @@
             <groupId>me.clip</groupId>
             <artifactId>placeholderapi</artifactId>
             <version>2.11.6</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.luckperms</groupId>
+            <artifactId>api</artifactId>
+            <version>5.4</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

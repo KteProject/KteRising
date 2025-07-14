@@ -34,6 +34,8 @@ public class PlayerJoin implements Listener {
                 player.sendTitle(title, subtitle);
             } else {
                 player.teleport(new Location(player.getWorld(), centerX, 160, centerZ));
+                player.getInventory().clear();
+                player.updateInventory();
                 player.setGameMode(GameMode.SPECTATOR);
                 String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.eliminated.title")));
                 String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.eliminated.sub")));
@@ -51,6 +53,7 @@ public class PlayerJoin implements Listener {
             TeamManager.assignPlayerToTeam(event.getPlayer());
             TeamGUI.updateTeamMenuForAll();
             player.getInventory().clear();
+            player.updateInventory();
             SpecialItems.giveSpecialItems(event.getPlayer());
         }
     }

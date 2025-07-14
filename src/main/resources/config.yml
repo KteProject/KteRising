@@ -17,9 +17,9 @@ world-size: 112
 #World name where features will be applied
 world-name: "world"
 #It writes when PvP will be enabled.
-pvp-allow: 80
+pvp-allow: 90
 #It writes how often the lava will rise, in seconds.
-lava-delay: 1
+lava-delay: 3
 #It writes at which layer the lava will start to rise. (1.8+ = 1, 1.18+ = -64)
 lava-start-block: 1
 #If you turn off AutoPickUp, the blocks you break will fall to the ground.
@@ -34,7 +34,7 @@ water-to-ice:
 #If it is false the spectators can generate chunks
 spectators-generate-chunks: true
 #If it is true the water with lava does not turn to obsidian
-#(But if lava is in the highest layer, players can turn it into obsidian.)
+#(But but when pvp opens, players can turn it into obsidian.)
 obsidian-fix: true
 
 #For example, people don't get themselves killed by putting a door. When the lava reaches a certain layer, it will check and if a person is below this layer, it will kill them.
@@ -47,6 +47,7 @@ border-kill: 253
 team:
   max-size: 2
 
+# Sound settings for various game events
 sound:
   countdown-sound: BLOCK_NOTE_BLOCK_PLING
   skip-sound: BLOCK_NOTE_BLOCK_PLING
@@ -57,11 +58,13 @@ sound:
   pvp-sound: BLOCK_NOTE_BLOCK_PLING
   shrink-sound: BLOCK_NOTE_BLOCK_PLING
 
+# Custom death message settings
 custom-death-messages:
   enabled: true
   havent-killer: "&c☠ &a%player%"
   have-killer: "&c⚔ &a%player% &cfrom &a%killer%"
 
+# Reward system settings
 rewards:
   enabled: true
   kill-player:
@@ -70,3 +73,9 @@ rewards:
     - "eco give %player% 3"
   death-player:
     - "eco give %player% -3"
+
+# Vote multipliers based on player group(LuckPerms)
+vote_multipliers:
+  default: 1
+  vip: 2
+

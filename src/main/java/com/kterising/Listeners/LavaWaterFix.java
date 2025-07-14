@@ -35,7 +35,7 @@ public class LavaWaterFix implements Listener {
 
         if ((blockType == Material.LAVA && toBlockType == Material.WATER) ||
                 (blockType == Material.WATER && toBlockType == Material.LAVA)) {
-            if (StartGame.lava == plugin.getConfig().getInt("lava-border")) {
+            if (StartGame.PvP) {
                 return;
             }
             event.setCancelled(true);

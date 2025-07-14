@@ -134,7 +134,7 @@ public class ModVoteGUI implements Listener {
 
         modManager.voteForMod(player, mod);
         player.sendMessage(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("mod.voted")).replace("%mod%", mod)));
-        player.closeInventory();
+        refreshAllOpenVoteMenus();
     }
 
     private void handleTeamVote(Player player, String teamVote) {
@@ -147,7 +147,7 @@ public class ModVoteGUI implements Listener {
 
         modManager.voteForTeam(player, teamVote);
         player.sendMessage(ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("mod.voted")).replace("%mod%", teamVote)));
-        player.closeInventory();
+        refreshAllOpenVoteMenus();
     }
 
     public static String getWinningMod() {
@@ -252,9 +252,30 @@ public class ModVoteGUI implements Listener {
         }
     }
 
+    public static void refreshAllOpenVoteMenus() {
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            if (votingPlayers.contains(onlinePlayer.getUniqueId())
+                    && onlinePlayer.getOpenInventory() != null
+                    && onlinePlayer.getOpenInventory().getTitle().equals(MENU_TITLE)) {
+                openModVoteMenu(onlinePlayer);
+            }
+        }
+    }
+
+
+
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
+
         closeModVoteMenu(player);
+
+        if (modManager.getVoteForPlayer(player.getUniqueId()) != null) {
+            modManager.removeModVote(player);
+        }
+
+        if (modManager.getTeamVoteForPlayer(player.getUniqueId()) != null) {
+            modManager.removeTeamVote(player);
+        }
     }
 }

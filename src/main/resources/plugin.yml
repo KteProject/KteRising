@@ -1,9 +1,9 @@
 name: KteRising
-version: 1.6.2
+version: 1.6.4
 main: com.kterising.KteRising
 api-version: '1.16'
 author: Ruby, Ben Lordlex, Kaan Flod
-softdepend: [PlaceholderAPI]
+softdepend: [PlaceholderAPI, LuckPerms]
 commands:
   kterising:
     description: "KteRising Command"

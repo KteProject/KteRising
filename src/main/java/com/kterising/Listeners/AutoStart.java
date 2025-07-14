@@ -33,12 +33,10 @@ public class AutoStart implements Listener {
     private void join(PlayerJoinEvent event) {
         updatePlayerCount();
 
-        if (!StartGame.match) {
-            if (plugin.getConfig().getBoolean("player-start")) {
-                if (players.get() >= plugin.getConfig().getInt("player-start-count")) {
-                    if (autostartTask == null) {
-                        startCountdown(plugin);
-                    }
+        if (!StartGame.match && plugin.getConfig().getBoolean("player-start")) {
+            if (players.get() >= plugin.getConfig().getInt("player-start-count")) {
+                if (autostartTask == null) {
+                    startCountdown(plugin);
                 }
             }
         }
@@ -48,11 +46,9 @@ public class AutoStart implements Listener {
     private void leave(PlayerQuitEvent event) {
         updatePlayerCount();
 
-        if (!StartGame.match) {
-            if (plugin.getConfig().getBoolean("player-start")) {
-                if (players.get() <= plugin.getConfig().getInt("player-start-count")) {
-                    stopCountdown();
-                }
+        if (!StartGame.match && plugin.getConfig().getBoolean("player-start")) {
+            if (players.get() < plugin.getConfig().getInt("player-start-count")) {
+                stopCountdown();
             }
         }
     }
@@ -62,11 +58,17 @@ public class AutoStart implements Listener {
     }
 
     public static void startCountdown(Plugin plugin) {
+        time.set(plugin.getConfig().getInt("player-start-time"));
+
         autostartTask = new BukkitRunnable() {
             @Override
             public void run() {
                 int remainingTime = time.decrementAndGet();
+
                 if (remainingTime <= 0) {
+                    cancel();
+                    autostartTask = null;
+
                     if (plugin.getConfig().getBoolean("vote-start")) {
                         ModVoteGUI.selectWinningVotes();
                         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -74,22 +76,27 @@ public class AutoStart implements Listener {
                             SpecialItems.removeSpecialItems(player);
                         }
                     }
+
                     new BukkitRunnable() {
                         @Override
                         public void run() {
                             StartGame.start(plugin);
                         }
                     }.runTaskLater(plugin, 20L);
-                    cancel();
+
+                    return;
                 }
 
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.translateAlternateColorCodes('&', MessagesConfig.get().getString("start-time") + remainingTime + " " + MessagesConfig.get().getString("start-second"))));
+                    String message = ChatColor.translateAlternateColorCodes('&',
+                            MessagesConfig.get().getString("start-time") + remainingTime + " " +
+                                    MessagesConfig.get().getString("start-second"));
+                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
                 }
             }
         };
+
         autostartTask.runTaskTimer(plugin, 20L, 20L);
-        time.set(plugin.getConfig().getInt("player-start-time"));
     }
 
     public static void stopCountdown() {

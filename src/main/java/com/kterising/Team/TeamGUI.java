@@ -149,7 +149,6 @@ public class TeamGUI implements Listener {
 
     @EventHandler
     public void handleInventoryClick(InventoryClickEvent event) {
-
         Player player = (Player) event.getWhoClicked();
         ItemStack clickedItem = event.getCurrentItem();
         if (clickedItem == null || !clickedItem.hasItemMeta()) {

@@ -29,24 +29,28 @@ public class ModManager {
     public void voteForMod(Player player, String mod) {
         UUID playerId = player.getUniqueId();
         String previousVote = playerVotes.get(playerId);
+        int multiplier = VoteUtils.getVoteMultiplier(player);
 
         if (previousVote != null) {
-            modVotes.put(previousVote, modVotes.get(previousVote) - 1);
+            int previousMultiplier = VoteUtils.getVoteMultiplier(player);
+            modVotes.put(previousVote, modVotes.get(previousVote) - previousMultiplier);
         }
 
-        modVotes.put(mod, modVotes.getOrDefault(mod, 0) + 1);
+        modVotes.put(mod, modVotes.getOrDefault(mod, 0) + multiplier);
         playerVotes.put(playerId, mod);
     }
 
     public void voteForTeam(Player player, String team) {
         UUID playerId = player.getUniqueId();
         String previousVote = playerTeamVotes.get(playerId);
+        int multiplier = VoteUtils.getVoteMultiplier(player);
 
         if (previousVote != null) {
-            teamVotes.put(previousVote, teamVotes.get(previousVote) - 1);
+            int previousMultiplier = VoteUtils.getVoteMultiplier(player);
+            teamVotes.put(previousVote, teamVotes.get(previousVote) - previousMultiplier);
         }
 
-        teamVotes.put(team, teamVotes.getOrDefault(team, 0) + 1);
+        teamVotes.put(team, teamVotes.getOrDefault(team, 0) + multiplier);
         playerTeamVotes.put(playerId, team);
     }
 
@@ -81,5 +85,30 @@ public class ModManager {
 
         playerVotes.clear();
         playerTeamVotes.clear();
+    }
+
+    public void removeModVote(Player player) {
+        UUID playerId = player.getUniqueId();
+        String votedMod = playerVotes.remove(playerId);
+        if (votedMod != null) {
+            int multiplier = VoteUtils.getVoteMultiplier(player);
+            modVotes.put(votedMod, modVotes.getOrDefault(votedMod, multiplier) - multiplier);
+            if (modVotes.get(votedMod) <= 0) {
+                modVotes.remove(votedMod);
+            }
+        }
+    }
+
+
+    public void removeTeamVote(Player player) {
+        UUID playerId = player.getUniqueId();
+        String votedTeam = playerTeamVotes.remove(playerId);
+        if (votedTeam != null) {
+            int multiplier = VoteUtils.getVoteMultiplier(player);
+            teamVotes.put(votedTeam, teamVotes.getOrDefault(votedTeam, multiplier) - multiplier);
+            if (teamVotes.get(votedTeam) <= 0) {
+                teamVotes.remove(votedTeam);
+            }
+        }
     }
 }
