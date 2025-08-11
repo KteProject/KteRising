@@ -38,6 +38,7 @@ public class StartGame implements Listener {
 
 
     public static HashMap<UUID, Location> leavedPlayers = new HashMap<UUID, Location>();
+    public static HashMap<UUID, ItemStack[]> leavedInventories = new HashMap<>();
 
 
     public static Sound getSoundFromConfig(Plugin plugin, String path) {
@@ -111,7 +112,14 @@ public class StartGame implements Listener {
         lavarising = false;
         time = false;
         match = true;
-        lava = plugin.getConfig().getInt("lava-start-block");
+
+        World world = getConfiguredWorld(plugin);
+        if (world == null) return;
+
+        int configLavaLevel = plugin.getConfig().getInt("lava-start-block");
+        int worldMinY = world.getMinHeight();
+        lava = Math.max(configLavaLevel, worldMinY);
+
         if ("Classic".equals(mode) || "Elytra".equals(mode) || "Trident".equals(mode)) {
             seconds = plugin.getConfig().getInt("classic-start-time");
         } else if ("OP".equals(mode)|| "UltraOP".equals(mode) || "ElytraOP".equals(mode) || "TridentOP".equals(mode)) {
@@ -132,36 +140,35 @@ public class StartGame implements Listener {
             PvP = false;
         }
 
+        task = new BukkitRunnable() {
+            @Override
+            public void run() {
+                live(plugin);
 
-            task = new BukkitRunnable() {
-                @Override
-                public void run() {
-                    live(plugin);
-
-                    if (time) {
-                        seconds++;
-                    } else {
-                        seconds--;
-                    }
-
-                    if (seconds == 0) {
-                        time = true;
-                        for (Player player : Bukkit.getOnlinePlayers()) {
-                            String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.lava-starting.title")));
-                            String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.lava-starting.sub")));
-                            player.sendTitle(title, subtitle);
-                            player.getWorld().playSound(player.getLocation(), getSoundFromConfig(plugin, "sound.lava-rise-sound"), 1.0f, 1.0f);
-                            lavarising = true;
-                            leavedPlayers.clear();
-                        }
-                        upLava(plugin);
-
-                    }
+                if (time) {
+                    seconds++;
+                } else {
+                    seconds--;
                 }
-            };
 
-            task.runTaskTimer(plugin, 20L, 20L);
-        }
+                if (seconds == 0) {
+                    time = true;
+                    for (Player player : Bukkit.getOnlinePlayers()) {
+                        String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.lava-starting.title")));
+                        String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.lava-starting.sub")));
+                        player.sendTitle(title, subtitle);
+                        player.getWorld().playSound(player.getLocation(), getSoundFromConfig(plugin, "sound.lava-rise-sound"), 1.0f, 1.0f);
+                        lavarising = true;
+                        leavedPlayers.clear();
+                        leavedInventories.clear();
+                    }
+                    upLava(plugin);
+                }
+            }
+        };
+
+        task.runTaskTimer(plugin, 20L, 20L);
+    }
 
     public static void live(Plugin plugin) {
         Bukkit.getServer().getConsoleSender();
@@ -255,6 +262,7 @@ public class StartGame implements Listener {
         win = false;
         end = false;
         leavedPlayers.clear();
+        leavedInventories.clear();
         lava = plugin.getConfig().getInt("lava-start-block");
         Command.selectedmode = false;
         modManager.resetVotes();
@@ -327,15 +335,17 @@ public class StartGame implements Listener {
         }
     }
 
-    private static Location findSafeLocation(World world, int centerX, int centerZ) {
-        for (int y = 60; y < 100; y++) {
-            Location loc = new Location(world, centerX + 0.5, y, centerZ + 0.5);
-            if (world.getBlockAt(loc).getType() == Material.AIR &&
-                    world.getBlockAt(loc.clone().add(0, 1, 0)).getType() == Material.AIR) {
-                return loc;
+    private static Location findSafeLocation(World world, int x, int z) {
+        for (int y = 60; y <= world.getMaxHeight() - 2; y++) {
+            Material block = world.getBlockAt(x, y, z).getType();
+            Material blockAbove = world.getBlockAt(x, y + 1, z).getType();
+            Material blockBelow = world.getBlockAt(x, y - 1, z).getType();
+
+            if (block == Material.AIR && blockAbove == Material.AIR && blockBelow.isSolid()) {
+                return new Location(world, x + 0.5, y, z + 0.5);
             }
         }
-        return new Location(world, centerX + 0.5, 100, centerZ + 0.5);
+        return new Location(world, x + 0.5, 160, z + 0.5);
     }
 
     private static void transformWaterToIce(Plugin plugin, World world, int centerX, int centerZ) {
@@ -387,6 +397,7 @@ public class StartGame implements Listener {
         final int minZ = (int) (worldBorder.getCenter().getZ() - worldBorder.getSize() / 2.0D);
         final int maxX = minX + (int) worldBorder.getSize();
         final int maxZ = minZ + (int) worldBorder.getSize();
+        final int worldMinY = world.getMinHeight();
 
         task2 = new BukkitRunnable() {
             public void run() {
@@ -401,7 +412,7 @@ public class StartGame implements Listener {
 
                         for (int x = cx << 4; x < (cx << 4) + 16; x++) {
                             for (int z = cz << 4; z < (cz << 4) + 16; z++) {
-                                for (int y = Math.max(0, currentLavaLevel - 1); y <= currentLavaLevel; y++) {
+                                for (int y = Math.max(worldMinY, currentLavaLevel - 1); y <= currentLavaLevel; y++) {
                                     Block block = world.getBlockAt(x, y, z);
                                     Material type = block.getType();
 
@@ -455,6 +466,7 @@ public class StartGame implements Listener {
                     StartGame.lava++;
                 }
             }
-        };task2.runTaskTimer(plugin, 0L, 20L * plugin.getConfig().getInt("lava-delay"));
+        };
+        task2.runTaskTimer(plugin, 0L, 20L * plugin.getConfig().getInt("lava-delay"));
     }
 }

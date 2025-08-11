@@ -120,6 +120,12 @@ public class AutoPickUp implements Listener {
                 case POINTED_DRIPSTONE:
                     droppedItem = new ItemStack(Material.POINTED_DRIPSTONE, 1);
                     break;
+                case CRAFTING_TABLE:
+                    droppedItem = new ItemStack(Material.CRAFTING_TABLE, 1);
+                    break;
+                case FURNACE:
+                    droppedItem = new ItemStack(Material.FURNACE, 1);
+                    break;
                 default:
                     break;
             }

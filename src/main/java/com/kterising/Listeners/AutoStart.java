@@ -69,13 +69,14 @@ public class AutoStart implements Listener {
                     cancel();
                     autostartTask = null;
 
-                    if (plugin.getConfig().getBoolean("vote-start")) {
                         ModVoteGUI.selectWinningVotes();
                         for (Player player : Bukkit.getOnlinePlayers()) {
                             ModVoteGUI.closeModVoteMenu(player);
                             SpecialItems.removeSpecialItems(player);
+                            player.closeInventory();
+                            StartGame.leavedPlayers.clear();
+                            StartGame.leavedInventories.clear();
                         }
-                    }
 
                     new BukkitRunnable() {
                         @Override

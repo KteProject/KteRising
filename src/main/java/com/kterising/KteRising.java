@@ -88,6 +88,7 @@ public final class KteRising extends JavaPlugin {
         StartGame.winner = null;
         StartGame.win = false;
         StartGame.leavedPlayers.clear();
+        StartGame.leavedInventories.clear();
         Command.selectedmode = false;
 
         String worldName = getConfig().getString("world-name", "world");

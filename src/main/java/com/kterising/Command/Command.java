@@ -80,6 +80,9 @@ public class Command implements CommandExecutor {
                     SpecialItems.removeSpecialItems(player);
                     ModVoteGUI.closeModVoteMenu(player);
                     player.closeInventory();
+                    StartGame.leavedPlayers.clear();
+                    StartGame.leavedInventories.clear();
+
                 }
 
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
