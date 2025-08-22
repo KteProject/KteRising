@@ -229,6 +229,10 @@ public class StartGame implements Listener {
             }
 
             if (!end) {
+                if(plugin.getConfig().getBoolean("restart-server")) {
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> Bukkit.shutdown(), 80L);
+                    return;
+                }
                 Bukkit.getScheduler().runTaskLater(plugin, () -> resetWorldBorder(plugin), 100L);
                 end = true;
             }
@@ -311,9 +315,8 @@ public class StartGame implements Listener {
                 if (!centerChunk.isLoaded()) centerChunk.load(true);
 
                 for (Player player : onlinePlayers) {
-                    Location safeSpawn = findSafeLocation(world, centerX, centerZ);
-                    player.teleport(safeSpawn);
-                    player.setBedSpawnLocation(safeSpawn, true);
+                    player.teleport(new Location(world, centerX, plugin.getConfig().getInt("teleport-y"), centerZ));
+                    player.setBedSpawnLocation(new Location(world, centerX, plugin.getConfig().getInt("teleport-y"), centerZ), true);
 
                     SpecialItems.giveSpecialItems(player);
                     TeamManager.assignPlayerToTeam(player);
@@ -333,19 +336,6 @@ public class StartGame implements Listener {
                 }
             }
         }
-    }
-
-    private static Location findSafeLocation(World world, int x, int z) {
-        for (int y = 60; y <= world.getMaxHeight() - 2; y++) {
-            Material block = world.getBlockAt(x, y, z).getType();
-            Material blockAbove = world.getBlockAt(x, y + 1, z).getType();
-            Material blockBelow = world.getBlockAt(x, y - 1, z).getType();
-
-            if (block == Material.AIR && blockAbove == Material.AIR && blockBelow.isSolid()) {
-                return new Location(world, x + 0.5, y, z + 0.5);
-            }
-        }
-        return new Location(world, x + 0.5, 160, z + 0.5);
     }
 
     private static void transformWaterToIce(Plugin plugin, World world, int centerX, int centerZ) {

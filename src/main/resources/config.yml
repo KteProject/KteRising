@@ -34,13 +34,20 @@ spectators-generate-chunks: true
 #If it is true the water with lava does not turn to obsidian
 #(But but when pvp opens, players can turn it into obsidian.)
 obsidian-fix: true
-
+#Should the server be restarted after the game ends?
+#If you say false, the game will end and a new game will be played at a distance of +1000.
+restart-server: false
+#If the player exits before the lava rises and then re-enters
+#they can continue playing.
+rejoin-player: true
 #For example, people don't get themselves killed by putting a door. When the lava reaches a certain layer, it will check and if a person is below this layer, it will kill them.
 #Which layer should it check underneath?
 #It writes at which layer the lava will stop. (1.8+ = 256, 1.18+ = 320)
 lava-border: 256
 #Kills a player standing on a certain layer of lava. (border-kill has to be lower than lava-border!!!)
 border-kill: 253
+#The location where the person will be teleported when the game starts
+teleport-y: 180
 
 team:
   max-size: 2

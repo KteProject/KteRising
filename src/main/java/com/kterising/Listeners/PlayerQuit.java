@@ -24,6 +24,7 @@ public class PlayerQuit implements Listener {
                 PlayerStats.addDeath(event.getPlayer());
             } else {
                 if (event.getPlayer().getGameMode() != GameMode.SPECTATOR) {
+                    if(!plugin.getConfig().getBoolean("rejoin-player")) return;
                     StartGame.leavedPlayers.put(event.getPlayer().getUniqueId(), event.getPlayer().getLocation());
                     StartGame.leavedInventories.put(event.getPlayer().getUniqueId(), event.getPlayer().getInventory().getContents());
                 }

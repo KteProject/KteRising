@@ -3,6 +3,7 @@ package com.kterising.Listeners;
 import com.kterising.Functions.MessagesConfig;
 import com.kterising.Functions.SpecialItems;
 import com.kterising.Functions.StartGame;
+import com.kterising.KteRising;
 import com.kterising.Team.TeamGUI;
 import com.kterising.Team.TeamManager;
 import org.bukkit.*;
@@ -26,24 +27,35 @@ public class PlayerJoin implements Listener {
         UUID uuid = player.getUniqueId();
 
         if (StartGame.match) {
-            if (StartGame.leavedPlayers.containsKey(uuid)) {
-                Location returnLoc = StartGame.leavedPlayers.get(uuid);
-                player.setGameMode(GameMode.SURVIVAL);
-                player.teleport(returnLoc);
+            if(!StartGame.lavarising) {
+                if (StartGame.leavedPlayers.containsKey(uuid)) {
+                    Location returnLoc = StartGame.leavedPlayers.get(uuid);
+                    player.setGameMode(GameMode.SURVIVAL);
+                    player.teleport(returnLoc);
 
-                ItemStack[] savedInv = StartGame.leavedInventories.get(uuid);
-                if (savedInv != null) {
-                    player.getInventory().setContents(savedInv);
-                    StartGame.leavedInventories.remove(uuid);
+                    ItemStack[] savedInv = StartGame.leavedInventories.get(uuid);
+                    if (savedInv != null) {
+                        player.getInventory().setContents(savedInv);
+                        StartGame.leavedInventories.remove(uuid);
+                    }
+
+                    StartGame.leavedPlayers.remove(uuid);
+
+                    String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.rejoined.title")));
+                    String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.rejoined.sub")));
+                    player.sendTitle(title, subtitle, 10, 60, 10);
+                } else {
+                    Location specLoc = new Location(player.getWorld(), centerX, KteRising.getInstance().getConfig().getInt("teleport-y"), centerZ);
+                    player.teleport(specLoc);
+                    player.getInventory().clear();
+                    player.setGameMode(GameMode.SPECTATOR);
+
+                    String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.eliminated.title")));
+                    String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.eliminated.sub")));
+                    player.sendTitle(title, subtitle, 10, 60, 10);
                 }
-
-                StartGame.leavedPlayers.remove(uuid);
-
-                String title = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.rejoined.title")));
-                String subtitle = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(MessagesConfig.get().getString("title.rejoined.sub")));
-                player.sendTitle(title, subtitle, 10, 60, 10);
             } else {
-                Location specLoc = new Location(player.getWorld(), centerX, 160, centerZ);
+                Location specLoc = new Location(player.getWorld(), centerX, KteRising.getInstance().getConfig().getInt("teleport-y"), centerZ);
                 player.teleport(specLoc);
                 player.getInventory().clear();
                 player.setGameMode(GameMode.SPECTATOR);
@@ -54,7 +66,7 @@ public class PlayerJoin implements Listener {
             }
 
         } else {
-            Location spawnLoc = getSafeSpawn(player.getWorld(), centerX, centerZ);
+            Location spawnLoc = new Location(player.getWorld(), centerX, KteRising.getInstance().getConfig().getInt("teleport-y"), centerZ);
             player.teleport(spawnLoc);
             player.setGameMode(GameMode.ADVENTURE);
 
@@ -66,16 +78,4 @@ public class PlayerJoin implements Listener {
         }
     }
 
-    private Location getSafeSpawn(World world, int x, int z) {
-        for (int y = 60; y <= world.getMaxHeight() - 2; y++) {
-            Material block = world.getBlockAt(x, y, z).getType();
-            Material blockAbove = world.getBlockAt(x, y + 1, z).getType();
-            Material blockBelow = world.getBlockAt(x, y - 1, z).getType();
-
-            if (block == Material.AIR && blockAbove == Material.AIR && blockBelow.isSolid()) {
-                return new Location(world, x + 0.5, y, z + 0.5);
-            }
-        }
-        return new Location(world, x + 0.5, 160, z + 0.5);
-    }
 }
