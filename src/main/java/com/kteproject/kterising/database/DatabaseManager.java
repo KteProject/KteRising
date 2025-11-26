@@ -47,9 +47,7 @@ public class DatabaseManager {
                     uuid TEXT PRIMARY KEY,
                     name TEXT,
                     gamesPlayed INTEGER DEFAULT 0,
-                    wins INTEGER DEFAULT 0,
-                    kills INTEGER DEFAULT 0,
-                    deaths INTEGER DEFAULT 0
+                    wins INTEGER DEFAULT 0
                 );
             """);
         }

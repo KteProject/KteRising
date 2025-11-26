@@ -63,24 +63,10 @@ public class GameListeners implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerDeath(PlayerDeathEvent e) {
         if (!Game.match) return;
-
         Player p = e.getEntity();
-        Player killer = p.getKiller();
-
         p.setGameMode(GameMode.SPECTATOR);
         p.addPotionEffect(NIGHT_VISION);
-
         RewardsManager.deathPlayer(p);
-
-        PlayerStats ps = StatsCache.get(p.getUniqueId());
-        if (ps != null) ps.deaths++;
-
-        if (killer != null) {
-            RewardsManager.killPlayer(killer);
-            PlayerStats ks = StatsCache.get(killer.getUniqueId());
-            if (ks != null) ks.kills++;
-        }
-
         Game.checkLive();
     }
 

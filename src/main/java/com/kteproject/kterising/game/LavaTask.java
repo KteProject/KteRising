@@ -78,6 +78,12 @@ public class LavaTask {
         plugin.getServer().getGlobalRegionScheduler().runAtFixedRate(plugin, task -> {
 
             if (Game.lava >= maxHeight) {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    if (player.getGameMode() != GameMode.SURVIVAL)continue;
+                    if (player.getLocation().getY() <= (Game.lava - 8)) {
+                        player.setHealth(0.0D);
+                    }
+                }
                 task.cancel();
                 return;
             }
@@ -109,11 +115,9 @@ public class LavaTask {
                         if (t != Material.LAVA &&
                                 (t == Material.AIR || t == Material.WATER ||
                                         t == Material.CAVE_AIR || t == Material.VOID_AIR)) {
-
                             if (pipeline == null) {
                                 pipeline = new ArrayList<>(64);
                             }
-
                             pipeline.add(b);
                         }
                     }

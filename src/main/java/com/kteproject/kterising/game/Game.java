@@ -46,47 +46,34 @@ public class Game {
     public static int maxZ;
 
     public static void init() {
-
         String worldName = KteRising.getConfiguration().getString("world-configurations.world-name");
         world = Bukkit.getWorld(worldName);
-
         if (world == null) {
             Bukkit.getLogger().warning("[KteRising] World '" + worldName + "' not found. Using default world.");
             world = Bukkit.getWorlds().get(0);
         }
-
         Location safe = KteRising.getSpawnLocation();
-
         WorldBorder wb = world.getWorldBorder();
         double size = KteRising.getConfiguration().getDouble("world-configurations.world-border");
-
         wb.setCenter(safe.getX(), safe.getZ());
         wb.setSize(size);
         wb.setDamageAmount(5);
         wb.setDamageBuffer(2);
-
         match = false;
         seconds = 0;
-
         mode = ChatUtil.getText("placeholderapi.mode-not-selected");
         placeholderlabel = mode;
-
         lavarising = false;
         pvp = false;
         teamMode = false;
         time = false;
-
         lava = KteRising.getConfiguration().getInt("game-configurations.lava-start-height");
         lives = 0;
-
         double half = wb.getSize() / 2.0;
-
         minX = (int) Math.floor(wb.getCenter().getX() - half);
         maxX = (int) Math.ceil(wb.getCenter().getX() + half);
-
         minZ = (int) Math.floor(wb.getCenter().getZ() - half);
         maxZ = (int) Math.ceil(wb.getCenter().getZ() + half);
-
         Bukkit.getLogger().info(
                 "[KteRising] WorldBorder initialized at safe biome location: "
                         + safe.getX() + ", " + safe.getZ()

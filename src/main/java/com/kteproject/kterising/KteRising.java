@@ -1,5 +1,4 @@
 package com.kteproject.kterising;
-
 import com.kteproject.kterising.database.DatabaseManager;
 import com.kteproject.kterising.game.AutoStart;
 import com.kteproject.kterising.game.Game;
@@ -16,7 +15,6 @@ import com.kteproject.kterising.stats.StatsManager;
 import com.kteproject.kterising.utils.ChatUtil;
 import com.kteproject.kterising.utils.MessagesConfig;
 import com.kteproject.kterising.utils.Metrics;
-import com.kteproject.kterising.utils.UpdateCheck;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -33,26 +31,20 @@ public final class KteRising extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
-
         saveDefaultConfig();
         MessagesConfig.setup(this);
         ChatUtil.init(this);
         CommandManager.init(this);
-
         Bukkit.getPluginManager().registerEvents(new GameListeners(), this);
         Bukkit.getPluginManager().registerEvents(new AutoStart(), this);
         Bukkit.getPluginManager().registerEvents(new AutoPickUp(this), this);
         Bukkit.getPluginManager().registerEvents(new LobbyItems(), this);
-
         voteManager = new VoteManager(getConfig().getConfigurationSection("modes-configuration"));
         voteGui = new VoteGui(this, voteManager);
-
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             new Placeholder().register();
         }
-
         printBanner("Loading...");
-
         Bukkit.getAsyncScheduler().runNow(this, task -> {
             StatsCache.init();
             DatabaseManager.init();
@@ -60,33 +52,13 @@ public final class KteRising extends JavaPlugin {
             ModeManager.loadModes();
             voteGui.init();
         });
-
         SafeBiomeManager.findSafeLocation();
         cachedSpawn = SafeBiomeManager.getSafeLocation();
-
         Game.init();
-
         if (getConfiguration().getBoolean("plugin-configurations.bstats-metrics")) {
             new Metrics(this, 21969);
         }
-
         printBanner("Enabled");
-
-        if(getConfiguration().getBoolean("plugin-configurations.update-check")) {
-            UpdateCheck updateCheck = new UpdateCheck(this, 112155);
-            getLogger().info("Checking for updates...");
-            updateCheck.isUpdateAvailable(isAvailable -> {
-                if(isAvailable) {
-                    getLogger().info("");
-                    getLogger().info("   WARNING!");
-                    getLogger().info(" A new update for KteRising is available!");
-                    getLogger().info(" Please update the plugin as soon as possible.");
-                    getLogger().info("");
-                } else {
-                    getLogger().info("The plugin is up to date.");
-                }
-            });
-        }
     }
 
     @Override

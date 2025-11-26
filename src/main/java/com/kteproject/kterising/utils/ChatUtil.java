@@ -1,5 +1,4 @@
 package com.kteproject.kterising.utils;
-
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
@@ -11,7 +10,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;

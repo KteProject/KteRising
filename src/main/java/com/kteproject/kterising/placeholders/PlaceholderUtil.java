@@ -17,12 +17,6 @@ public class PlaceholderUtil {
 
         switch (ph) {
 
-            case "kill":
-                return stats != null ? String.valueOf(stats.kills) : "0";
-
-            case "death":
-                return stats != null ? String.valueOf(stats.deaths) : "0";
-
             case "win":
                 return stats != null ? String.valueOf(stats.wins) : "0";
 

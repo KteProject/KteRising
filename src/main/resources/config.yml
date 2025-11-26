@@ -7,10 +7,6 @@
 ############################################################
 
 plugin-configurations:
-  # Checks for new plugin updates on startup.
-  # Recommended: Keep enabled, lets you know when a new version is available.
-  update-check: true
-
   # Enables anonymous performance analytics through bStats.
   # Does NOT collect personal information — safe to keep enabled.
   bstats-metrics: true
@@ -75,10 +71,6 @@ game-configurations:
   # The exact Y-level at which PvP becomes enabled.
   # Set below lava-finish-height or PvP may never enable.
   pvp-allow-height: 70
-
-  # If enabled → All drops go directly into player inventory.
-  # If disabled → Blocks drop items on the ground normally.
-  auto-pickup: true
 
   # If enabled → Ores automatically smelt when mined.
   # Example: Iron Ore → Iron Ingot, Gold Ore → Gold Ingot.

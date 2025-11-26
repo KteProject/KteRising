@@ -19,18 +19,6 @@ public class AutoPickUp implements Listener {
 
     private final KteRising plugin;
 
-    private static final Set<Material> NO_PICKUP = Set.of(
-            Material.SHORT_GRASS, Material.TALL_GRASS, Material.FERN, Material.LARGE_FERN,
-            Material.SEAGRASS, Material.TALL_SEAGRASS, Material.DEAD_BUSH, Material.NETHER_SPROUTS,
-            Material.CRIMSON_ROOTS, Material.WARPED_ROOTS, Material.NETHER_WART,
-            Material.MOSS_CARPET, Material.SWEET_BERRY_BUSH, Material.FLOWERING_AZALEA_LEAVES,
-            Material.AZALEA_LEAVES, Material.AZALEA, Material.FLOWERING_AZALEA,
-            Material.TRIPWIRE, Material.FIRE, Material.LILY_PAD, Material.SNOW,
-            Material.SUGAR_CANE, Material.KELP, Material.KELP_PLANT, Material.BAMBOO,
-            Material.BAMBOO_SAPLING, Material.TWISTING_VINES, Material.TWISTING_VINES_PLANT,
-            Material.WEEPING_VINES, Material.WEEPING_VINES_PLANT
-    );
-
     public AutoPickUp(KteRising plugin) {
         this.plugin = plugin;
     }
@@ -41,41 +29,20 @@ public class AutoPickUp implements Listener {
         Player p = e.getPlayer();
         Block b = e.getBlock();
         Material type = b.getType();
-
-        boolean autoPickup = KteRising.getConfiguration().getBoolean("game-configurations.auto-pickup");
         boolean autoSmelt = KteRising.getConfiguration().getBoolean("game-configurations.auto-smelt");
-
-        if (!autoPickup && !autoSmelt) return;
-
-        if (NO_PICKUP.contains(type)) return;
-
         boolean ore = isOre(type);
         e.setDropItems(false);
-
-        if (!autoPickup && autoSmelt) {
+        if (autoSmelt) {
             if (!ore) return;
-
             Material smelted = getSmelted(type);
             int amount = getOreAmount();
             b.getWorld().dropItemNaturally(b.getLocation(), new ItemStack(smelted, amount));
             return;
         }
-
         if (ore) {
             Material drop = autoSmelt ? getSmelted(type) : getRawOreDrop(type);
             int amount = getOreAmount();
             give(p, new ItemStack(drop, amount));
-            return;
-        }
-
-        switch (type) {
-            case GRASS_BLOCK -> give(p, new ItemStack(Material.DIRT));
-            case STONE -> give(p, new ItemStack(Material.COBBLESTONE));
-            case GRAVEL -> {
-                int r = ThreadLocalRandom.current().nextInt(100);
-                give(p, new ItemStack(r < 40 ? Material.FLINT : Material.GRAVEL));
-            }
-            default -> give(p, new ItemStack(type));
         }
     }
 

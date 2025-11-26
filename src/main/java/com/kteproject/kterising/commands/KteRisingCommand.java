@@ -130,37 +130,20 @@ public class KteRisingCommand extends BaseCommand {
     @Permission("kterising.command.stats")
     public void statsCommand(CommandSender sender, Player targetName) {
         Player target = targetName;
-
         if (target == null || (!target.hasPlayedBefore() && !target.isOnline())) {
             ChatUtil.sendMessage(sender, "stats.not-found");
             return;
         }
-
         PlayerStats stats = StatsCache.get(target.getUniqueId());
-
         if (stats == null) {
             ChatUtil.sendMessage(sender, "stats.not-found");
             return;
         }
-
         ChatUtil.sendMessage(
                 sender,
                 "stats.header",
                 Map.of("player", target.getName())
         );
-
-        ChatUtil.sendMessage(
-                sender,
-                "stats.kill",
-                Map.of("kill", String.valueOf(stats.kills))
-        );
-
-        ChatUtil.sendMessage(
-                sender,
-                "stats.death",
-                Map.of("death", String.valueOf(stats.deaths))
-        );
-
         ChatUtil.sendMessage(
                 sender,
                 "stats.win",
