@@ -45,6 +45,8 @@ public class StatsManager {
                         stats = new PlayerStats(uuid, name);
                         stats.gamesPlayed = rs.getInt("gamesPlayed");
                         stats.wins = rs.getInt("wins");
+                        stats.kills = rs.getInt("kills");
+                        stats.deaths = rs.getInt("deaths");
                     }
                 }
 
@@ -52,13 +54,15 @@ public class StatsManager {
                     stats = new PlayerStats(uuid, name);
 
                     try (PreparedStatement ps = c.prepareStatement(
-                            "INSERT INTO kterising_stats (uuid, name, gamesPlayed, wins) " +
+                            "INSERT INTO kterising_stats (uuid, name, gamesPlayed, wins, kills, deaths) " +
                                     "VALUES (?, ?, ?, ?, ?, ?)")) {
 
                         ps.setString(1, uuid.toString());
                         ps.setString(2, name);
                         ps.setInt(3, 0);
                         ps.setInt(4, 0);
+                        ps.setInt(5, 0);
+                        ps.setInt(6, 0);
                         ps.executeUpdate();
                     }
                 }
@@ -76,13 +80,15 @@ public class StatsManager {
         plugin.getServer().getAsyncScheduler().runNow(plugin, (task) -> {
             try (Connection c = DatabaseManager.getConnection();
                  PreparedStatement ps = c.prepareStatement(
-                         "UPDATE kterising_stats SET name=?, gamesPlayed=?, wins=? WHERE uuid=?"
+                         "UPDATE kterising_stats SET name=?, gamesPlayed=?, wins=?, kills=?, deaths=? WHERE uuid=?"
                  )) {
 
                 ps.setString(1, stats.getName());
                 ps.setInt(2, stats.gamesPlayed);
                 ps.setInt(3, stats.wins);
-                ps.setString(4, stats.getUuid().toString());
+                ps.setInt(4, stats.kills);
+                ps.setInt(5, stats.deaths);
+                ps.setString(6, stats.getUuid().toString());
                 ps.executeUpdate();
 
             } catch (Exception ex) {
@@ -95,13 +101,15 @@ public class StatsManager {
     public static void syncSave(PlayerStats stats) {
         try (Connection c = DatabaseManager.getConnection();
              PreparedStatement ps = c.prepareStatement(
-                     "UPDATE kterising_stats SET name=?, gamesPlayed=?, wins=? WHERE uuid=?"
+                     "UPDATE kterising_stats SET name=?, gamesPlayed=?, wins=?, kills=?, deaths=? WHERE uuid=?"
              )) {
 
             ps.setString(1, stats.getName());
             ps.setInt(2, stats.gamesPlayed);
             ps.setInt(3, stats.wins);
-            ps.setString(4, stats.getUuid().toString());
+            ps.setInt(4, stats.kills);
+            ps.setInt(5, stats.deaths);
+            ps.setString(6, stats.getUuid().toString());
             ps.executeUpdate();
 
         } catch (Exception ex) {

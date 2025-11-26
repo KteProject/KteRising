@@ -8,6 +8,8 @@ public class PlayerStats {
 
     public int gamesPlayed;
     public int wins;
+    public int kills;
+    public int deaths;
 
     public PlayerStats(UUID uuid, String name) {
         this.uuid = uuid;
