@@ -52,6 +52,10 @@ database:
 
 
 game-configurations:
+  # Should the server shut down when the game ends, or should it send a new game arena?
+  # true -> The server is shut down
+  # false -> It sends the player 1000 blocks away and creates a new game area.
+  restart-server: false
   # Time (in seconds) before lava begins rising in CLASSIC mode.
   # Recommended: 600 (10 minutes) for balanced gameplay.
   classic-start-duration: 600

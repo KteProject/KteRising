@@ -40,7 +40,7 @@ public class GameListeners implements Listener {
         p.addPotionEffect(NIGHT_VISION);
         Location spawn = KteRising.getSpawnLocation();
         spawn.getWorld().getChunkAtAsync(spawn).thenAccept(chunk -> {
-            p.teleport(spawn);
+            p.teleportAsync(spawn);
         });
         p.setGameMode(Game.match ? GameMode.SPECTATOR : GameMode.SURVIVAL);
         StatsManager.load(p);

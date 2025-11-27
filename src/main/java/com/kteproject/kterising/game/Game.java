@@ -1,9 +1,12 @@
 package com.kteproject.kterising.game;
 
 import com.kteproject.kterising.KteRising;
+import com.kteproject.kterising.managers.LobbyItems;
 import com.kteproject.kterising.managers.RewardsManager;
+import com.kteproject.kterising.managers.SafeBiomeManager;
 import com.kteproject.kterising.managers.gamemodes.ModeItem;
 import com.kteproject.kterising.managers.gamemodes.ModeManager;
+import com.kteproject.kterising.managers.vote.VoteManager;
 import com.kteproject.kterising.stats.PlayerStats;
 import com.kteproject.kterising.stats.StatsCache;
 import com.kteproject.kterising.utils.ChatUtil;
@@ -36,7 +39,8 @@ public class Game {
     public static boolean time;
     private static int countdown;
     public static String placeholderlabel;
-    private static boolean end = false;
+    public static boolean end = false;
+    public static boolean firstend = false;
     private static String winner = null;
     public static boolean lavaFrozen = false;
 
@@ -55,16 +59,28 @@ public class Game {
             world = Bukkit.getWorlds().get(0);
         }
 
-        Location safe = KteRising.getSpawnLocation();
-
         WorldBorder wb = world.getWorldBorder();
         double size = KteRising.getConfiguration().getDouble("world-configurations.world-border");
-
-        wb.setCenter(safe.getX(), safe.getZ());
-        wb.setSize(size);
-        wb.setDamageAmount(5);
-        wb.setDamageBuffer(2);
-
+        
+        if (end){
+            int x = (int) wb.getCenter().getX()+1000;
+            int z = (int) wb.getCenter().getZ()+1000;
+            SafeBiomeManager.findSafeLocation(x,z);
+            KteRising.setSpawnLocation(SafeBiomeManager.getSafeLocation());
+            wb.setCenter(SafeBiomeManager.getSafeLocation());
+            wb.setSize(size);
+            Chunk centerChunk = world.getChunkAt(x >> 4, z >> 4);
+            if(!centerChunk.isLoaded()) centerChunk.load(true);
+            VoteManager.resetVotes();
+        } else {
+            SafeBiomeManager.findSafeLocation(0,0);
+            KteRising.setSpawnLocation(SafeBiomeManager.getSafeLocation());
+            wb.setCenter(KteRising.getSpawnLocation().getX(), KteRising.getSpawnLocation().getZ());
+            wb.setSize(size);
+            wb.setDamageAmount(5);
+            wb.setDamageBuffer(2);
+        }
+        Location safe = KteRising.getSpawnLocation();
         match = false;
         seconds = 0;
 
@@ -75,6 +91,7 @@ public class Game {
         pvp = false;
         teamMode = false;
         time = false;
+        firstend = false;
 
         lava = KteRising.getConfiguration().getInt("game-configurations.lava-start-height");
         lives = 0;
@@ -87,15 +104,22 @@ public class Game {
         minZ = (int) Math.floor(wb.getCenter().getZ() - half);
         maxZ = (int) Math.ceil(wb.getCenter().getZ() + half);
 
-        Bukkit.getLogger().info(
-                "[KteRising] WorldBorder initialized at safe biome location: "
-                        + safe.getX() + ", " + safe.getZ()
-                        + " | Size: " + size
-        );
+        if (end){
+            KteRising.getInstance().getServer().getGlobalRegionScheduler().runDelayed(
+                    KteRising.getInstance(),
+                    (ScheduledTask task) -> {
+                        for (Player player : Bukkit.getOnlinePlayers()) {
+                            LobbyItems.giveLobbyItem(player);
+                            player.setGameMode(GameMode.SURVIVAL);
+                            player.teleportAsync(KteRising.getSpawnLocation());
+                        }
+                        AutoStart.startCountdown();
+                        end = false;
+                    },
+                    1L
+            );
+        }
     }
-
-
-
 
     public static void checkLive() {
         lives = 0;
@@ -123,7 +147,9 @@ public class Game {
                             5, 200, 5,
                             Map.of("winner", winner)
                     );
-
+                }
+                if (firstend)return;
+                if(KteRising.getConfiguration().getBoolean("game-configurations.restart-server")) {
                     KteRising.getInstance().getServer().getGlobalRegionScheduler().runDelayed(
                             KteRising.getInstance(),
                             (ScheduledTask task) -> {
@@ -131,7 +157,16 @@ public class Game {
                             },
                             200L
                     );
+                    return;
                 }
+                KteRising.getInstance().getServer().getGlobalRegionScheduler().runDelayed(
+                        KteRising.getInstance(),
+                        (ScheduledTask task) -> {
+                            init();
+                        },
+                        200L
+                );
+                firstend = true;
             }
         }
     }

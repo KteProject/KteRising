@@ -1,22 +1,32 @@
 package com.kteproject.kterising.managers.vote;
 
+import com.kteproject.kterising.KteRising;
 import org.bukkit.configuration.ConfigurationSection;
 import java.util.*;
 
 public class VoteManager {
 
-    private final Map<String, Integer> modeVotes;
-    private final Map<UUID, String> playerVotes;
+    private static Map<String, Integer> modeVotes;
+    private static Map<UUID, String> playerVotes;
     private static final Random RNG = new Random();
 
     public VoteManager(ConfigurationSection modesSection) {
-        this.modeVotes = new HashMap<>();
-        this.playerVotes = new HashMap<>();
+        modeVotes = new HashMap<>();
+        playerVotes = new HashMap<>();
 
         if (modesSection != null) {
             for (String mode : modesSection.getKeys(false)) {
                 modeVotes.put(mode.toLowerCase(Locale.ROOT), 0);
             }
+        }
+    }
+
+    public static void resetVotes() {
+        modeVotes.clear();
+        playerVotes.clear();
+
+        for (String mode : KteRising.getConfiguration().getConfigurationSection("modes-configuration").getKeys(false)) {
+            modeVotes.put(mode.toLowerCase(Locale.ROOT), 0);
         }
     }
 

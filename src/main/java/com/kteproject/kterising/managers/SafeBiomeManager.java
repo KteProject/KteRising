@@ -51,7 +51,7 @@ public class SafeBiomeManager {
         return true;
     }
 
-    public static void findSafeLocation() {
+    public static void findSafeLocation(int x, int z) {
 
         World world = Bukkit.getWorld(
                 KteRising.getConfiguration().getString("world-configurations.world-name", "world")
@@ -65,8 +65,6 @@ public class SafeBiomeManager {
         final int maxRadius = KteRising.getConfiguration()
                 .getInt("world-configurations.safe-biome-radius", 600);
 
-        int x = 0;
-        int z = 0;
         int dx = 1;
         int dz = 0;
         int segmentLength = 1;

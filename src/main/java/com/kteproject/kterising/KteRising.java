@@ -7,7 +7,6 @@ import com.kteproject.kterising.listeners.AutoPickUp;
 import com.kteproject.kterising.listeners.GameListeners;
 import com.kteproject.kterising.managers.CommandManager;
 import com.kteproject.kterising.managers.LobbyItems;
-import com.kteproject.kterising.managers.SafeBiomeManager;
 import com.kteproject.kterising.managers.gamemodes.ModeManager;
 import com.kteproject.kterising.managers.vote.VoteGui;
 import com.kteproject.kterising.managers.vote.VoteManager;
@@ -19,7 +18,6 @@ import com.kteproject.kterising.utils.Metrics;
 import com.kteproject.kterising.utils.UpdateCheck;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -60,10 +58,6 @@ public final class KteRising extends JavaPlugin {
             ModeManager.loadModes();
             voteGui.init();
         });
-
-        SafeBiomeManager.findSafeLocation();
-        cachedSpawn = SafeBiomeManager.getSafeLocation();
-
         Game.init();
 
         if (getConfiguration().getBoolean("plugin-configurations.bstats-metrics")) {
@@ -96,20 +90,11 @@ public final class KteRising extends JavaPlugin {
         printBanner("Disabled");
     }
 
-    public void cacheSpawn() {
-        World w = Bukkit.getWorld(getConfig().getString("world-configurations.world-name", "world"));
-
-        if (w == null) {
-            getLogger().warning("[KteRising] Config world not found. Using default world.");
-            w = Bukkit.getWorlds().get(0);
-        }
-
-        int y = w.getHighestBlockYAt(0, 0) + 1;
-        cachedSpawn = new Location(w, 0.5, y, 0.5);
-    }
-
     public static Location getSpawnLocation() {
         return cachedSpawn;
+    }
+    public static void setSpawnLocation(Location location) {
+        cachedSpawn = location;
     }
 
     public VoteManager getVoteManager() {

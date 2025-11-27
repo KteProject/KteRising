@@ -24,6 +24,7 @@ public class LavaTask {
     public static void cacheChunks() {
         CACHED_CHUNKS = new ArrayList<>(256);
         World w = Game.world;
+
         int minCx = Game.minX >> 4;
         int maxCx = Game.maxX >> 4;
         int minCz = Game.minZ >> 4;
@@ -45,6 +46,7 @@ public class LavaTask {
         plugin.getServer().getGlobalRegionScheduler().runAtFixedRate(plugin, task -> {
             Game.checkLive();
             checkSpectators();
+            if(Game.end) {task.cancel();return;}
 
             if (Game.time) {
                 Game.seconds++;
@@ -53,6 +55,7 @@ public class LavaTask {
                 if (Game.seconds <= 0) {
                     Game.time = true;
                     Game.lavarising = true;
+
                     cacheChunks();
                     startLava();
 
@@ -70,12 +73,15 @@ public class LavaTask {
 
     public static void startLava() {
         KteRising plugin = KteRising.getInstance();
+
         int delay = plugin.getConfig().getInt("game-configurations.lava-delay");
         int maxHeight = plugin.getConfig().getInt("game-configurations.lava-finish-height");
 
         Queue<List<Block>> fillQueue = new ArrayDeque<>();
 
         plugin.getServer().getGlobalRegionScheduler().runAtFixedRate(plugin, task -> {
+
+            if(Game.end) {task.cancel();return;}
 
             if (Game.lava >= maxHeight) {
                 task.cancel();
@@ -86,46 +92,38 @@ public class LavaTask {
             int targetY = Game.lava;
 
             for (Chunk chunk : CACHED_CHUNKS) {
-                if (!chunk.isLoaded()) continue;
+                int baseX = chunk.getX() * 16;
+                int baseZ = chunk.getZ() * 16;
 
-                int bx = chunk.getX() << 4;
-                int bz = chunk.getZ() << 4;
+                int sx = Math.max(Game.minX, baseX);
+                int ex = Math.min(Game.maxX, baseX + 15);
 
-                int startX = Math.max(0, Game.minX - bx);
-                int endX = Math.min(15, Game.maxX - bx);
-                int startZ = Math.max(0, Game.minZ - bz);
-                int endZ = Math.min(15, Game.maxZ - bz);
+                int sz = Math.max(Game.minZ, baseZ);
+                int ez = Math.min(Game.maxZ, baseZ + 15);
 
-                if (startX > endX || startZ > endZ) continue;
+                List<Block> pipeline = new ArrayList<>(40);
 
-                List<Block> pipeline = null;
-
-                for (int x = startX; x <= endX; x++) {
-                    for (int z = startZ; z <= endZ; z++) {
-
-                        Block b = chunk.getBlock(x, targetY, z);
+                for (int x = sx; x <= ex; x++) {
+                    for (int z = sz; z <= ez; z++) {
+                        Block b = Game.world.getBlockAt(x, targetY, z);
                         Material t = b.getType();
 
                         if (t != Material.LAVA &&
-                                (t == Material.AIR || t == Material.WATER ||
-                                        t == Material.CAVE_AIR || t == Material.VOID_AIR)) {
-
-                            if (pipeline == null) {
-                                pipeline = new ArrayList<>(64);
-                            }
-
+                                (t == Material.AIR ||
+                                        t == Material.WATER ||
+                                        t == Material.CAVE_AIR ||
+                                        t == Material.VOID_AIR)) {
                             pipeline.add(b);
                         }
                     }
                 }
 
-                if (pipeline != null && !pipeline.isEmpty()) {
+                if (!pipeline.isEmpty()) {
                     fillQueue.add(pipeline);
                 }
             }
 
             plugin.getServer().getGlobalRegionScheduler().runAtFixedRate(plugin, t2 -> {
-
                 List<Block> next = fillQueue.poll();
                 if (next == null) {
                     t2.cancel();
@@ -135,7 +133,6 @@ public class LavaTask {
                 for (Block b : next) {
                     b.setBlockData(LAVA_DATA, false);
                 }
-
             }, 1L, 1L);
 
             if (!Game.lavaFrozen) {
@@ -146,26 +143,32 @@ public class LavaTask {
     }
 
     public static void checkLavaHeight() {
-        int pvpHeight = KteRising.getConfiguration().getInt("game-configurations.pvp-allow-height");
+        int pvpHeight = KteRising.getConfiguration()
+                .getInt("game-configurations.pvp-allow-height");
 
         if (Game.lava == pvpHeight) {
             for (Player p : Bukkit.getOnlinePlayers()) {
-                ChatUtil.sendTitle(p,
+                ChatUtil.sendTitle(
+                        p,
                         "titles.pvp-allow.title",
                         "titles.pvp-allow.subtitle",
                         5, 40, 5,
-                        Map.of());
+                        Map.of()
+                );
             }
             Game.pvp = true;
 
-        } else if (Game.lava == KteRising.getConfiguration().getInt("game-configurations.lava-finish-height") - 1) {
+        } else if (Game.lava ==
+                KteRising.getConfiguration().getInt("game-configurations.lava-finish-height")-1) {
 
             for (Player player : Bukkit.getOnlinePlayers()) {
-                ChatUtil.sendTitle(player,
+                ChatUtil.sendTitle(
+                        player,
                         "titles.worldborder-shrink.title",
                         "titles.worldborder-shrink.subtitle",
                         5, 40, 5,
-                        Map.of());
+                        Map.of()
+                );
             }
 
             Game.world.getWorldBorder().setSize(2.0, 120L);
