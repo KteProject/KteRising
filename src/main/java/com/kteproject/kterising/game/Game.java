@@ -245,7 +245,6 @@ public class Game {
                             ItemFlag.HIDE_ENCHANTS,
                             ItemFlag.HIDE_ATTRIBUTES,
                             ItemFlag.HIDE_UNBREAKABLE,
-                            ItemFlag.HIDE_POTION_EFFECTS,
                             ItemFlag.HIDE_DESTROYS,
                             ItemFlag.HIDE_PLACED_ON
                     );
