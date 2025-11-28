@@ -24,7 +24,7 @@ public class LobbyItems implements Listener {
     private static void buildCachedCompass() {
         ItemStack compass = new ItemStack(Material.COMPASS);
         ItemMeta meta = compass.getItemMeta();
-        meta.displayName(MiniMessage.miniMessage().deserialize(ChatUtil.getText("vote.vote-item")));
+        meta.displayName(MiniMessage.miniMessage().deserialize("<!i>" + ChatUtil.getText("vote.vote-item")));
         compass.setItemMeta(meta);
         CACHED_COMPASS = compass;
     }

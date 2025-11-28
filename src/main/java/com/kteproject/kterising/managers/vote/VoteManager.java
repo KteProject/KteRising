@@ -76,6 +76,7 @@ public class VoteManager {
         int total = 0;
         for (int v : modeVotes.values()) total += v;
 
+        // Hiç oy yoksa rastgele mod seç
         if (total == 0) {
             List<String> keys = new ArrayList<>(modeVotes.keySet());
             return keys.get(RNG.nextInt(keys.size()));
@@ -91,8 +92,14 @@ public class VoteManager {
             }
         }
 
+        // bestMode hâlâ null ise ilk modu döndür
+        if (bestMode == null) {
+            return modeVotes.keySet().iterator().next();
+        }
+
         return bestMode;
     }
+
 
     public String getPlayerVote(UUID playerUUID) {
         return playerVotes.get(playerUUID);

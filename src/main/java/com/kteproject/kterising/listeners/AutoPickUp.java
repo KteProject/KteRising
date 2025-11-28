@@ -1,6 +1,7 @@
 package com.kteproject.kterising.listeners;
 
 import com.kteproject.kterising.KteRising;
+import com.kteproject.kterising.game.Game;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -23,7 +24,7 @@ public class AutoPickUp implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onBreak(BlockBreakEvent e) {
-
+        if(!Game.match) return;
         Player p = e.getPlayer();
         Block block = e.getBlock();
 
