@@ -17,13 +17,16 @@ import com.kteproject.kterising.utils.MessagesConfig;
 import com.kteproject.kterising.utils.Metrics;
 import com.kteproject.kterising.utils.UpdateCheck;
 import org.bukkit.Bukkit;
+import org.bukkit.GameRule;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class KteRising extends JavaPlugin {
 
     public static KteRising instance;
+    private static World world;
     private VoteManager voteManager;
     private VoteGui voteGui;
     private static Location cachedSpawn;
@@ -58,6 +61,19 @@ public final class KteRising extends JavaPlugin {
             ModeManager.loadModes();
             voteGui.init();
         });
+
+        String worldName = KteRising.getConfiguration().getString("world-configurations.world-name");
+        world = Bukkit.getWorld(worldName);
+        if (world == null) {
+            Bukkit.getLogger().warning("[KteRising] World '" + worldName + "' not found. Using default world.");
+            world = Bukkit.getWorlds().get(0);
+        }
+        world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
+        world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
+        world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
+        world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
+        world.setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
+
         Game.init();
 
         if (getConfiguration().getBoolean("plugin-configurations.bstats-metrics")) {

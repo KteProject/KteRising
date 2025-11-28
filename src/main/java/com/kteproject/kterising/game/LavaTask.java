@@ -7,11 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
-import org.bukkit.World;
+
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
@@ -84,6 +81,7 @@ public class LavaTask {
             if(Game.end) {task.cancel();return;}
 
             if (Game.lava >= maxHeight) {
+                checkPlayers();
                 task.cancel();
                 return;
             }
@@ -171,16 +169,28 @@ public class LavaTask {
                 );
             }
 
-            Game.world.getWorldBorder().setSize(2.0, 120L);
+            Game.world.getWorldBorder().setSize(5.0, 180L);
         }
     }
 
     private static void checkSpectators() {
+        Location loc = KteRising.getSpawnLocation();
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (p.getGameMode() != GameMode.SPECTATOR) continue;
 
             if (!p.getWorld().getWorldBorder().isInside(p.getLocation())) {
-                p.teleportAsync(KteRising.getSpawnLocation());
+                loc.setY(p.getLocation().getY());
+                p.teleportAsync(loc);
+            }
+        }
+    }
+
+    private static void checkPlayers() {
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            if (p.getGameMode() != GameMode.SURVIVAL) continue;
+
+            if (p.getLocation().getY() <= KteRising.getConfiguration().getInt("game-configurations.kill-height")) {
+                p.setHealth(0);
             }
         }
     }

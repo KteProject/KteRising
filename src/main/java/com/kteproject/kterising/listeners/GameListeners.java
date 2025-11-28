@@ -2,11 +2,13 @@ package com.kteproject.kterising.listeners;
 
 import com.kteproject.kterising.KteRising;
 import com.kteproject.kterising.game.Game;
+import com.kteproject.kterising.managers.LobbyItems;
 import com.kteproject.kterising.managers.RewardsManager;
 import com.kteproject.kterising.stats.PlayerStats;
 import com.kteproject.kterising.stats.StatsCache;
 import com.kteproject.kterising.stats.StatsManager;
 import com.kteproject.kterising.utils.ChatUtil;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -42,15 +44,30 @@ public class GameListeners implements Listener {
         spawn.getWorld().getChunkAtAsync(spawn).thenAccept(chunk -> {
             p.teleportAsync(spawn);
         });
-        p.setGameMode(Game.match ? GameMode.SPECTATOR : GameMode.SURVIVAL);
+        if (!Game.lavarising){
+            p.setGameMode(GameMode.SURVIVAL);
+            Game.giveItems(p);
+        } else {
+            p.setGameMode(GameMode.SPECTATOR);
+        }
+
         StatsManager.load(p);
+        if (KteRising.isVotingMenuEnabled()) {
+            KteRising.getInstance().getServer().getGlobalRegionScheduler().runDelayed(
+                    KteRising.getInstance(),
+                    (ScheduledTask task) -> LobbyItems.giveLobbyItem(p.getPlayer()),
+                    5L
+            );
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent e) {
         Player p = e.getPlayer();
         StatsManager.unload(p);
-
+        if (!Game.lavarising){
+            p.getInventory().clear();
+        }
         if (!Game.match) return;
 
         if (p.getGameMode() == GameMode.SURVIVAL) {

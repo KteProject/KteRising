@@ -69,8 +69,6 @@ public class Game {
             KteRising.setSpawnLocation(SafeBiomeManager.getSafeLocation());
             wb.setCenter(SafeBiomeManager.getSafeLocation());
             wb.setSize(size);
-            Chunk centerChunk = world.getChunkAt(x >> 4, z >> 4);
-            if(!centerChunk.isLoaded()) centerChunk.load(true);
             VoteManager.resetVotes();
         } else {
             SafeBiomeManager.findSafeLocation(0,0);
@@ -194,7 +192,9 @@ public class Game {
     public static void startGame() {
         if (match) return;
         match = true;
-        mode = KteRising.getInstance().getVoteManager().getWinningMode();
+        if (mode.equals(ChatUtil.getText("placeholderapi.mode-not-selected")) || mode == null) {
+            mode = KteRising.getInstance().getVoteManager().getWinningMode();
+        }
         checkLive();
 
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -226,7 +226,7 @@ public class Game {
         LavaTask.startTime(countdown);
     }
 
-    private static void giveItems(Player player) {
+    public static void giveItems(Player player) {
         ModeManager.getMode(mode).ifPresent(modeData -> {
             Registry<Enchantment> enchantmentRegistry = Bukkit.getRegistry(Enchantment.class);
 

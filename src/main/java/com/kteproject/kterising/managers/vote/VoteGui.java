@@ -6,6 +6,7 @@ import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -100,6 +101,10 @@ public class VoteGui {
 
 
     public void open(Player player) {
+        if(!KteRising.getConfiguration().getBoolean("voting-menu-configuration.enabled")){
+            ChatUtil.sendMessage(player, "");
+            if(!player.isOp())return;
+        }
         Gui gui = Gui.gui()
                 .title(TITLE)
                 .rows(GUI_ROWS)

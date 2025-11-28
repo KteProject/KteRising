@@ -56,6 +56,7 @@ game-configurations:
   # true -> The server is shut down
   # false -> It sends the player 1000 blocks away and creates a new game area.
   restart-server: false
+
   # Time (in seconds) before lava begins rising in CLASSIC mode.
   # Recommended: 600 (10 minutes) for balanced gameplay.
   classic-start-duration: 600
@@ -88,6 +89,10 @@ game-configurations:
   # Example: Iron Ore → Iron Ingot, Gold Ore → Gold Ingot.
   auto-smelt: true
 
+  # When lava reaches the top layer
+  # Players below this value will die
+  kill-height: 175
+
 
 world-configurations:
   # Name of the world the game will run in.
@@ -101,7 +106,6 @@ world-configurations:
   # Maximum build height allowed for players during the match.
   # Anything above this Y-level cannot be placed.
   world-height: 180
-
 
 autostart-configuration:
   # If true → Game automatically starts when enough players join.

@@ -1,6 +1,7 @@
 other:
   no-permission: "<red>⛔ You don't have permission to use this command."
   player-only: "<red>⛔ This command can only be used by players."
+  no-vote: "<red>⛔Vote is disabled on this server."
 
 placeholderapi:
   pvp-enabled: "<green>Enabled"

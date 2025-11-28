@@ -1,11 +1,8 @@
 package com.kteproject.kterising.managers;
 
 import com.kteproject.kterising.KteRising;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Biome;
-import org.bukkit.Material;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -26,9 +23,6 @@ public class SafeBiomeManager {
         BAD_BIOMES.add(Biome.DEEP_LUKEWARM_OCEAN);
         BAD_BIOMES.add(Biome.DEEP_COLD_OCEAN);
         BAD_BIOMES.add(Biome.DEEP_FROZEN_OCEAN);
-        BAD_BIOMES.add(Biome.RIVER);
-        BAD_BIOMES.add(Biome.FROZEN_RIVER);
-        BAD_BIOMES.add(Biome.BEACH);
         BAD_BIOMES.add(Biome.SNOWY_BEACH);
     }
 
@@ -62,8 +56,7 @@ public class SafeBiomeManager {
             Bukkit.getLogger().warning("[SafeBiome] Config world not found. Using default world.");
         }
 
-        final int maxRadius = KteRising.getConfiguration()
-                .getInt("world-configurations.safe-biome-radius", 600);
+        final int maxRadius = 55;
 
         int dx = 1;
         int dz = 0;
@@ -71,8 +64,7 @@ public class SafeBiomeManager {
         int stepsInSegment = 0;
         int turnCounter = 0;
 
-        for (int i = 0; i < maxRadius * maxRadius * 4; i++) {
-
+        for (int i = 0; i < maxRadius * maxRadius; i++) {
             int surfaceY = world.getHighestBlockYAt(x, z);
 
             Biome biome = world.getBiome(x, surfaceY, z);  // ★ CRITICAL FIX ★
@@ -107,9 +99,8 @@ public class SafeBiomeManager {
             }
         }
 
-        int fallbackY = world.getHighestBlockYAt(0, 0);
-        safeLocation = new Location(world, 0.5, fallbackY + 1, 0.5);
-
+        int fallbackY = world.getHighestBlockYAt(x, z);
+        safeLocation = new Location(world, x, fallbackY + 1, z);
         Bukkit.getLogger().warning("[SafeBiome] No safe biome found. Using fallback spawn.");
     }
 

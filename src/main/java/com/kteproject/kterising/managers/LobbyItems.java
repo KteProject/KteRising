@@ -9,6 +9,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.block.Action;
@@ -36,22 +37,15 @@ public class LobbyItems implements Listener {
         }
 
         player.getInventory().clear();
-        player.getInventory().setItem(COMPASS_SLOT, CACHED_COMPASS);
+        KteRising.getInstance().getServer().getGlobalRegionScheduler().runDelayed(
+                KteRising.getInstance(),
+                (ScheduledTask task) -> player.getInventory().setItem(COMPASS_SLOT, CACHED_COMPASS),
+                1L
+        );
     }
 
     public static void openModeSelector(Player player) {
         KteRising.getInstance().getVoteGui().open(player);
-    }
-
-    @EventHandler
-    public void onJoin(PlayerJoinEvent event) {
-        if (KteRising.isVotingMenuEnabled()) {
-            KteRising.getInstance().getServer().getGlobalRegionScheduler().runDelayed(
-                    KteRising.getInstance(),
-                    (ScheduledTask task) -> giveLobbyItem(event.getPlayer()),
-                    5L
-            );
-        }
     }
 
     @EventHandler
@@ -67,9 +61,18 @@ public class LobbyItems implements Listener {
 
     @EventHandler
     public void onDrop(PlayerDropItemEvent event) {
+        if (!Game.match){
+            event.setCancelled(true);
+            return;
+        }
         if (isLobbyCompass(event)) {
             event.setCancelled(true);
         }
+    }
+    @EventHandler
+    public void onItemPickup(EntityPickupItemEvent e){
+        if (!(e.getEntity() instanceof Player)) return;
+        if (!Game.match){e.setCancelled(true);}
     }
 
     @EventHandler
