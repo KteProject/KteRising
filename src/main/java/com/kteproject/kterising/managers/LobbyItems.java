@@ -1,5 +1,4 @@
 package com.kteproject.kterising.managers;
-
 import com.kteproject.kterising.KteRising;
 import com.kteproject.kterising.game.Game;
 import com.kteproject.kterising.utils.ChatUtil;

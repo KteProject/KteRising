@@ -1,5 +1,4 @@
 package com.kteproject.kterising.managers.vote;
-
 import com.kteproject.kterising.KteRising;
 import org.bukkit.configuration.ConfigurationSection;
 import java.util.*;
@@ -13,6 +12,19 @@ public class VoteManager {
     public VoteManager(ConfigurationSection modesSection) {
         modeVotes = new HashMap<>();
         playerVotes = new HashMap<>();
+
+        if (modesSection != null) {
+            for (String mode : modesSection.getKeys(false)) {
+                modeVotes.put(mode.toLowerCase(Locale.ROOT), 0);
+            }
+        }
+    }
+
+    public static void reloadVoteManager() {
+        modeVotes = new HashMap<>();
+        playerVotes = new HashMap<>();
+
+        ConfigurationSection modesSection = KteRising.getInstance().getConfig().getConfigurationSection("modes-configuration");
 
         if (modesSection != null) {
             for (String mode : modesSection.getKeys(false)) {
@@ -76,7 +88,6 @@ public class VoteManager {
         int total = 0;
         for (int v : modeVotes.values()) total += v;
 
-        // Hiç oy yoksa rastgele mod seç
         if (total == 0) {
             List<String> keys = new ArrayList<>(modeVotes.keySet());
             return keys.get(RNG.nextInt(keys.size()));
@@ -92,7 +103,6 @@ public class VoteManager {
             }
         }
 
-        // bestMode hâlâ null ise ilk modu döndür
         if (bestMode == null) {
             return modeVotes.keySet().iterator().next();
         }

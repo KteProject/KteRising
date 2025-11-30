@@ -1,7 +1,5 @@
 package com.kteproject.kterising;
-
 import com.kteproject.kterising.database.DatabaseManager;
-import com.kteproject.kterising.game.AutoStart;
 import com.kteproject.kterising.game.Game;
 import com.kteproject.kterising.listeners.AutoPickUp;
 import com.kteproject.kterising.listeners.GameListeners;
@@ -41,7 +39,6 @@ public final class KteRising extends JavaPlugin {
         CommandManager.init(this);
 
         Bukkit.getPluginManager().registerEvents(new GameListeners(), this);
-        Bukkit.getPluginManager().registerEvents(new AutoStart(), this);
         Bukkit.getPluginManager().registerEvents(new AutoPickUp(this), this);
         Bukkit.getPluginManager().registerEvents(new LobbyItems(), this);
 

@@ -1,8 +1,6 @@
 package com.kteproject.kterising.managers.gamemodes;
-
 import com.kteproject.kterising.KteRising;
 import org.bukkit.configuration.ConfigurationSection;
-
 import java.util.*;
 
 public class ModeManager {

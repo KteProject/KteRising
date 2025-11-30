@@ -1,8 +1,6 @@
 package com.kteproject.kterising.utils;
-
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;

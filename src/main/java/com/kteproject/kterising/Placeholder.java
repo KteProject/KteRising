@@ -1,5 +1,4 @@
 package com.kteproject.kterising;
-
 import com.kteproject.kterising.placeholders.PlaceholderUtil;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;

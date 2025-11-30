@@ -1,8 +1,6 @@
 package com.kteproject.kterising.utils;
-
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
-
 import java.io.File;
 
 public class MessagesConfig {

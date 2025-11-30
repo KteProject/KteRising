@@ -1,10 +1,8 @@
 package com.kteproject.kterising.managers;
-
 import com.kteproject.kterising.KteRising;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-
 import java.util.List;
 
 public class RewardsManager {

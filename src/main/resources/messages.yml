@@ -64,5 +64,5 @@ stats:
 
 vote:
   vote-item: "<green>Vote"
-  vote: "<green>You voted for the <gold><mode></gold> mode!"
+  vote: "<green>You voted for the <gold><mode><green> mode!"
   already-voted: "<red>You have already voted for this mode!"

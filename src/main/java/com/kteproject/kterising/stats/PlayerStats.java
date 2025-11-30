@@ -1,5 +1,4 @@
 package com.kteproject.kterising.stats;
-
 import java.util.UUID;
 
 public class PlayerStats {

@@ -1,5 +1,4 @@
 package com.kteproject.kterising.game;
-
 import com.kteproject.kterising.KteRising;
 import com.kteproject.kterising.utils.ChatUtil;
 import java.util.ArrayDeque;
@@ -7,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
@@ -169,7 +167,7 @@ public class LavaTask {
                 );
             }
 
-            Game.world.getWorldBorder().setSize(5.0, 180L);
+            Game.world.getWorldBorder().setSize(KteRising.getConfiguration().getDouble("world-configurations.area-shrinkage"), 180L);
         }
     }
 

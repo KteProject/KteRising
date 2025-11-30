@@ -1,46 +1,16 @@
 package com.kteproject.kterising.game;
-
 import com.kteproject.kterising.KteRising;
 import com.kteproject.kterising.utils.ChatUtil;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-
 import java.util.Map;
 
-public class AutoStart implements Listener {
+public class AutoStart {
 
     static ScheduledTask countdownTask;
     private static boolean isCountdownStarted;
     private static int countdownSeconds;
-
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent e) {
-        if (Game.match) return;
-
-        int playerCount = Bukkit.getOnlinePlayers().size();
-        if (playerCount >= KteRising.getConfiguration().getInt("autostart-configuration.need-player-count")) {
-            startCountdown();
-        } else {
-            stopCountdown();
-        }
-    }
-
-    @EventHandler
-    public void onPlayerQuit(PlayerQuitEvent e) {
-        if (Game.match) return;
-
-        int playerCount = Bukkit.getOnlinePlayers().size();
-        if (playerCount >= KteRising.getConfiguration().getInt("autostart-configuration.need-player-count")) {
-            startCountdown();
-        } else {
-            stopCountdown();
-        }
-    }
 
     public static void startCountdown() {
         if (isCountdownStarted) return;

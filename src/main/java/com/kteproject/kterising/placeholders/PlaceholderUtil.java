@@ -1,5 +1,4 @@
 package com.kteproject.kterising.placeholders;
-
 import com.kteproject.kterising.stats.PlayerStats;
 import com.kteproject.kterising.stats.StatsCache;
 import com.kteproject.kterising.game.Game;

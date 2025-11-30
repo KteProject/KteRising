@@ -1,5 +1,4 @@
 package com.kteproject.kterising.managers.gamemodes;
-
 import java.util.List;
 
 public class GameModes {

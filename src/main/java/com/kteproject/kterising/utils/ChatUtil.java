@@ -1,5 +1,4 @@
 package com.kteproject.kterising.utils;
-
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
@@ -11,7 +10,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -38,6 +36,20 @@ public final class ChatUtil {
     public static String getText(String keyOrRaw) {
         String message = MessagesConfig.getMessage(keyOrRaw);
         return (message != null) ? message : keyOrRaw;
+    }
+
+    public static Component getText(String keyOrRaw, Map<String, String> placeholders) {
+        String message = MessagesConfig.getMessage(keyOrRaw);
+        if (message == null) return Component.text("Message not found: " + keyOrRaw);
+
+        if (placeholders == null || placeholders.isEmpty()) {
+            return MiniMessage.miniMessage().deserialize(message);
+        }
+
+        TagResolver.Builder builder = TagResolver.builder();
+        placeholders.forEach((k, v) -> builder.resolver(Placeholder.parsed(k, v)));
+
+        return MiniMessage.miniMessage().deserialize("<!i>" + message, builder.build());
     }
 
     public static Component parse(String text, TagResolver... resolvers) {

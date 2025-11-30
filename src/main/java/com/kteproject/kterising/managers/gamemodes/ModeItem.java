@@ -1,5 +1,4 @@
 package com.kteproject.kterising.managers.gamemodes;
-
 import org.bukkit.Material;
 import java.util.List;
 import java.util.Map;

@@ -1,5 +1,4 @@
 package com.kteproject.kterising.managers;
-
 import com.kteproject.kterising.commands.KteRisingCommand;
 import com.kteproject.kterising.utils.ChatUtil;
 import dev.triumphteam.cmd.bukkit.BukkitCommandManager;

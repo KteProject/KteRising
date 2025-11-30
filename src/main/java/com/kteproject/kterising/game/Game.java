@@ -1,5 +1,4 @@
 package com.kteproject.kterising.game;
-
 import com.kteproject.kterising.KteRising;
 import com.kteproject.kterising.managers.LobbyItems;
 import com.kteproject.kterising.managers.RewardsManager;
@@ -22,7 +21,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +33,6 @@ public class Game {
     public static int lives;
     public static boolean pvp = false;
     public static World world;
-    public static boolean teamMode = false;
     public static boolean time;
     private static int countdown;
     public static String placeholderlabel;
@@ -87,7 +84,6 @@ public class Game {
 
         lavarising = false;
         pvp = false;
-        teamMode = false;
         time = false;
         firstend = false;
 
@@ -130,58 +126,52 @@ public class Game {
     }
 
     public static void checkWin() {
-        if (!teamMode) {
-            if (lives == 1) {
-                if (!end) {
-                    winner = getWinner();
-                    if (winner == null) winner = "Unknown";
-                    end = true;
-                }
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    ChatUtil.sendTitle(
-                            player,
-                            "titles.finish-game.title",
-                            "titles.finish-game.subtitle",
-                            5, 200, 5,
-                            Map.of("winner", winner)
-                    );
-                }
-                if (firstend)return;
-                if(KteRising.getConfiguration().getBoolean("game-configurations.restart-server")) {
-                    KteRising.getInstance().getServer().getGlobalRegionScheduler().runDelayed(
-                            KteRising.getInstance(),
-                            (ScheduledTask task) -> {
-                                KteRising.getInstance().getServer().shutdown();
-                            },
-                            200L
-                    );
-                    return;
-                }
-                KteRising.getInstance().getServer().getGlobalRegionScheduler().runDelayed(
-                        KteRising.getInstance(),
-                        (ScheduledTask task) -> {
-                            init();
-                        },
-                        200L
-                );
-                firstend = true;
-            }
+        if (end) return;
+        if (lives != 1) return;
+
+        winner = getWinner();
+        if (winner == null) winner = "Unknown";
+
+        end = true;
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            ChatUtil.sendTitle(
+                    player,
+                    "titles.finish-game.title",
+                    "titles.finish-game.subtitle",
+                    5, 200, 5,
+                    Map.of("winner", winner)
+            );
         }
+
+        if (firstend) return;
+
+        if (KteRising.getConfiguration().getBoolean("game-configurations.restart-server")) {
+            KteRising.getInstance().getServer().getGlobalRegionScheduler().runDelayed(
+                    KteRising.getInstance(),
+                    (ScheduledTask task) -> KteRising.getInstance().getServer().shutdown(),
+                    200L
+            );
+            return;
+        }
+
+        KteRising.getInstance().getServer().getGlobalRegionScheduler().runDelayed(
+                KteRising.getInstance(),
+                (ScheduledTask task) -> init(),
+                200L
+        );
+
+        firstend = true;
     }
 
-    public static String getWinner() {
-        if (!teamMode) {
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                if (player.getGameMode() == GameMode.SURVIVAL) {
+    private static String getWinner() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (player.getGameMode() == GameMode.SURVIVAL) {
+                PlayerStats stats = StatsCache.get(player.getUniqueId());
+                if (stats != null) stats.wins++;
 
-                    PlayerStats stats = StatsCache.get(player.getUniqueId());
-                    if (stats != null) {
-                        stats.wins++;
-                    }
-
-                    RewardsManager.winPlayer(player);
-                    return player.getName();
-                }
+                RewardsManager.winPlayer(player);
+                return player.getName();
             }
         }
         return null;
@@ -203,14 +193,11 @@ public class Game {
             player.setHealth(20);
             player.setFoodLevel(20);
             player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 0, true, false));
-
             PlayerStats stats = StatsCache.get(player.getUniqueId());
             if (stats != null) {
                 stats.gamesPlayed++;
             }
-
             giveItems(player);
-
             ChatUtil.sendTitle(
                     player,
                     "titles.start-game.title",

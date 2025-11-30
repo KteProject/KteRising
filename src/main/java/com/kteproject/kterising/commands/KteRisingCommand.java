@@ -1,9 +1,9 @@
 package com.kteproject.kterising.commands;
-
 import com.kteproject.kterising.KteRising;
 import com.kteproject.kterising.game.AutoStart;
 import com.kteproject.kterising.game.Game;
 import com.kteproject.kterising.managers.gamemodes.ModeManager;
+import com.kteproject.kterising.managers.vote.VoteManager;
 import com.kteproject.kterising.stats.PlayerStats;
 import com.kteproject.kterising.stats.StatsCache;
 import com.kteproject.kterising.utils.ChatUtil;
@@ -17,7 +17,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-
 import java.util.Map;
 
 @Command("kterising")
@@ -95,6 +94,7 @@ public class KteRisingCommand extends BaseCommand {
         MessagesConfig.reload();
         KteRising.getInstance().reloadConfig();
         ModeManager.loadModes();
+        VoteManager.reloadVoteManager();
         ChatUtil.sendMessage(sender, "command.reload-command");
     }
 

@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>KteProject</groupId>
-    <artifactId>KteRising2</artifactId>
-    <version>2.1.1</version>
+    <artifactId>KteRising</artifactId>
+    <version>2.1.2</version>
     <packaging>jar</packaging>
 
     <name>KteRising2</name>

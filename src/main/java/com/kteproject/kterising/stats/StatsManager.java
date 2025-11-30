@@ -1,10 +1,8 @@
 package com.kteproject.kterising.stats;
-
 import com.kteproject.kterising.KteRising;
 import com.kteproject.kterising.database.DatabaseManager;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.entity.Player;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

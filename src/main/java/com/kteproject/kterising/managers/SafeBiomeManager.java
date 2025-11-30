@@ -1,9 +1,7 @@
 package com.kteproject.kterising.managers;
-
 import com.kteproject.kterising.KteRising;
 import org.bukkit.*;
 import org.bukkit.block.Biome;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -56,18 +54,16 @@ public class SafeBiomeManager {
             Bukkit.getLogger().warning("[SafeBiome] Config world not found. Using default world.");
         }
 
-        final int maxRadius = 55;
-
         int dx = 1;
         int dz = 0;
         int segmentLength = 1;
         int stepsInSegment = 0;
         int turnCounter = 0;
 
-        for (int i = 0; i < maxRadius * maxRadius; i++) {
+        for (int i = 0; i < 3000; i++) {
             int surfaceY = world.getHighestBlockYAt(x, z);
 
-            Biome biome = world.getBiome(x, surfaceY, z);  // ★ CRITICAL FIX ★
+            Biome biome = world.getBiome(x, surfaceY, z);
 
             if (!isBad(biome) && isSafeSpot(world, x, z)) {
 

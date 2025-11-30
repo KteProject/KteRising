@@ -1,6 +1,6 @@
 package com.kteproject.kterising.listeners;
-
 import com.kteproject.kterising.KteRising;
+import com.kteproject.kterising.game.AutoStart;
 import com.kteproject.kterising.game.Game;
 import com.kteproject.kterising.managers.LobbyItems;
 import com.kteproject.kterising.managers.RewardsManager;
@@ -9,6 +9,7 @@ import com.kteproject.kterising.stats.StatsCache;
 import com.kteproject.kterising.stats.StatsManager;
 import com.kteproject.kterising.utils.ChatUtil;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -16,7 +17,6 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -52,52 +52,55 @@ public class GameListeners implements Listener {
         }
 
         StatsManager.load(p);
-        if (KteRising.isVotingMenuEnabled()) {
+        if(KteRising.isVotingMenuEnabled()) {
             KteRising.getInstance().getServer().getGlobalRegionScheduler().runDelayed(
                     KteRising.getInstance(),
                     (ScheduledTask task) -> LobbyItems.giveLobbyItem(p.getPlayer()),
                     5L
             );
         }
+
+        if (!Game.match){
+            if (Bukkit.getOnlinePlayers().size() >= KteRising.getConfiguration().getInt("autostart-configuration.need-player-count")) {
+                AutoStart.startCountdown();
+            } else {
+                AutoStart.stopCountdown();
+            }
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent e) {
+        if (!Game.match){
+            if (Bukkit.getOnlinePlayers().size() >= KteRising.getConfiguration().getInt("autostart-configuration.need-player-count")) {
+                AutoStart.startCountdown();
+            } else {
+                AutoStart.stopCountdown();
+            }
+        }
         Player p = e.getPlayer();
         StatsManager.unload(p);
-        if (!Game.lavarising){
-            p.getInventory().clear();
-        }
-        if (!Game.match) return;
-
-        if (p.getGameMode() == GameMode.SURVIVAL) {
-            p.setHealth(0.0);
-        }
-
         Game.checkLive();
+        if (!Game.lavarising) return;
+        p.getInventory().clear();
+        p.setHealth(0.0);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerDeath(PlayerDeathEvent e) {
         if (!Game.match) return;
-
         Player p = e.getEntity();
         Player killer = p.getKiller();
-
         p.setGameMode(GameMode.SPECTATOR);
         p.addPotionEffect(NIGHT_VISION);
-
         RewardsManager.deathPlayer(p);
-
         PlayerStats ps = StatsCache.get(p.getUniqueId());
         if (ps != null) ps.deaths++;
-
         if (killer != null) {
             RewardsManager.killPlayer(killer);
             PlayerStats ks = StatsCache.get(killer.getUniqueId());
             if (ks != null) ks.kills++;
         }
-
         Game.checkLive();
     }
 
@@ -113,9 +116,7 @@ public class GameListeners implements Listener {
     public void onDamageByEntity(EntityDamageByEntityEvent e) {
         if (!(e.getEntity() instanceof Player)) return;
         if (Game.pvp) return;
-
         Object damager = e.getDamager();
-
         if (damager instanceof Player
                 || damager instanceof Projectile proj && proj.getShooter() instanceof Player) {
             e.setCancelled(true);
@@ -149,14 +150,6 @@ public class GameListeners implements Listener {
         if (y >= MAX_HEIGHT) {
             e.setCancelled(true);
             ChatUtil.sendActionBar(e.getPlayer(), "action-bar.max-height");
-        }
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onBlockBreak(BlockBreakEvent e) {
-        Player p = e.getPlayer();
-        if (!Game.match && !p.isOp()) {
-            e.setCancelled(true);
         }
     }
 }
