@@ -120,6 +120,24 @@ public class KteRisingCommand extends BaseCommand {
         }
     }
 
+    @SubCommand("autostart")
+    @Permission("kterising.command.autostart")
+    public void autostartCommand(CommandSender player, String args) {
+        if (args.length() == 0) {ChatUtil.sendMessage(player, "command.autostart-usage"); return;}
+        if (args.equalsIgnoreCase("start")) {
+            if(Game.match) {ChatUtil.sendMessage(player, "command.command-error-2"); return;}
+            ChatUtil.sendMessage(player, "command.autostart-start");
+            AutoStart.startCountdown();
+            return;
+        } else if (args.equalsIgnoreCase("stop")) {
+            if(Game.match) {ChatUtil.sendMessage(player, "command.command-error-2"); return;}
+            ChatUtil.sendMessage(player, "command.autostart-stop");
+            AutoStart.stopCountdown();
+            return;
+        }
+    }
+
+
     @SubCommand("vote")
     public void voteCommand(Player player) {
         KteRising.getInstance().getVoteGui().open(player);

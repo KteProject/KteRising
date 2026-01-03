@@ -1,4 +1,5 @@
 package com.kteproject.kterising.game;
+
 import com.kteproject.kterising.KteRising;
 import com.kteproject.kterising.managers.LobbyItems;
 import com.kteproject.kterising.managers.RewardsManager;
@@ -21,6 +22,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+
 import java.util.List;
 import java.util.Map;
 
@@ -58,7 +60,7 @@ public class Game {
 
         WorldBorder wb = world.getWorldBorder();
         double size = KteRising.getConfiguration().getDouble("world-configurations.world-border");
-        
+
         if (end){
             int x = (int) wb.getCenter().getX()+1000;
             int z = (int) wb.getCenter().getZ()+1000;
@@ -75,7 +77,7 @@ public class Game {
             wb.setDamageAmount(5);
             wb.setDamageBuffer(2);
         }
-        Location safe = KteRising.getSpawnLocation();
+
         match = false;
         seconds = 0;
 
@@ -97,6 +99,8 @@ public class Game {
 
         minZ = (int) Math.floor(wb.getCenter().getZ() - half);
         maxZ = (int) Math.ceil(wb.getCenter().getZ() + half);
+
+        LavaTask.resetState();
 
         if (end){
             KteRising.getInstance().getServer().getGlobalRegionScheduler().runDelayed(
@@ -164,6 +168,41 @@ public class Game {
         firstend = true;
     }
 
+    public static void endDraw() {
+        if (end) return;
+
+        end = true;
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            ChatUtil.sendTitle(
+                    player,
+                    "titles.finish-game.title",
+                    "titles.finish-game.subtitle",
+                    5, 200, 5,
+                    Map.of("winner", "DRAW")
+            );
+        }
+
+        if (firstend) return;
+
+        if (KteRising.getConfiguration().getBoolean("game-configurations.restart-server")) {
+            KteRising.getInstance().getServer().getGlobalRegionScheduler().runDelayed(
+                    KteRising.getInstance(),
+                    (ScheduledTask task) -> KteRising.getInstance().getServer().shutdown(),
+                    200L
+            );
+            return;
+        }
+
+        KteRising.getInstance().getServer().getGlobalRegionScheduler().runDelayed(
+                KteRising.getInstance(),
+                (ScheduledTask task) -> init(),
+                200L
+        );
+
+        firstend = true;
+    }
+
     private static String getWinner() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (player.getGameMode() == GameMode.SURVIVAL) {
@@ -176,8 +215,6 @@ public class Game {
         }
         return null;
     }
-
-
 
     public static void startGame() {
         if (match) return;
@@ -238,11 +275,7 @@ public class Game {
 
                     if (!mi.getLore().isEmpty()) {
                         List<Component> finalLore = mi.getLore().stream()
-                                .map(line -> {
-                                    String processedLine = "<!i>" + line;
-
-                                    return MiniMessage.miniMessage().deserialize(processedLine);
-                                })
+                                .map(line -> MiniMessage.miniMessage().deserialize("<!i>" + line))
                                 .toList();
 
                         meta.lore(finalLore);
@@ -270,7 +303,4 @@ public class Game {
     }
 
     public static final PersistentDataType<String, String> STRING_TAG = PersistentDataType.STRING;
-
 }
-
-

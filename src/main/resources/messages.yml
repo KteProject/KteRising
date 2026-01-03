@@ -18,14 +18,25 @@ command:
     - "<gold>/kterising stats <gray>- Shows the statistics of a player."
     - "<gold>/kterising reload <gray>- Reload configuration files"
     - "<gold>/kterising freeze <gray>- Freeze/unfreeze lava rising"
+    - "<gold>/kterising autostart <gray>- Start/stop auto start time"
     - "<gold><bold>──────────────────────────────────────"
+  autostart-start: "<green>✔ Autostart time started"
+  autostart-stop: "<green>✔ Autostart time stopped!"
+  autostart-usage: "<red>/kterising autostart <start/stop>"
   start-command: "<green>✔ The game has started!"
   mode-command: "<green>✔ Game mode changed to <gold><mode><green>."
   mode-command-error: "<red>✖ This mode does not exist: <gold><mode>"
   reload-command: "<green>✔ Configuration files reloaded. <gray>(Some settings may require a restart.)"
   command-error: "<red>✖ This command can only be used during an active game."
+  command-error-2: "<red>✖ This command can only be used before the game starts"
 
 titles:
+  deathmatch:
+    title: "<red><bold>DEATHMATCH!"
+    subtitle: "<gold>Fight now or the game will end in a draw!"
+  deathmatch-30s:
+    title: "<red><bold>⚠ FINAL WARNING!"
+    subtitle: "<gray>Only <gold>30 seconds <gray>remaining!"
   finish-game:
     title: "<gold><bold>GAME OVER!"
     subtitle: "<gray>Winner: <white><winner>"

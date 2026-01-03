@@ -25,6 +25,7 @@ public class AutoStart {
                 KteRising.getInstance(),
                 (ScheduledTask task) -> {
                     int online = Bukkit.getOnlinePlayers().size();
+
                     if (online < neededPlayers) {
                         stopCountdown();
                         return;

@@ -77,9 +77,16 @@ game-configurations:
   # If disabled → Blocks drop items on the ground normally.
   auto-pickup: true
 
-  # When lava reaches the top layer
-  # Players below this value will die
+  # When lava reaches the top layer,
+  # players below this Y-level will instantly die.
   kill-height: 175
+
+  # Deathmatch duration (in seconds).
+  # Starts after the WorldBorder has fully shrunk.
+  # If the time runs out and 2 or more players are still alive,
+  # the game ends in a DRAW and all remaining players are eliminated.
+  # Example: 120 = 2 minutes
+  deathmatch-duration: 120
 
 world-configurations:
   # Name of the world the game will run in.
@@ -94,9 +101,12 @@ world-configurations:
   # Anything above this Y-level cannot be placed.
   world-height: 180
 
-  #When the lava reaches its highest layer, the world border shrinks.
-  #Set how many blocks it shrinks by.
+  # When the lava reaches its highest layer, the world border shrinks.
+  # Set how many blocks it shrinks by.
   area-shrinkage: 6.0
+
+  # How long should the area shrink?
+  area-delay: 160
 
 autostart-configuration:
   # If true → Game automatically starts when enough players join.
@@ -123,7 +133,7 @@ rewards-configuration:
 
   # Commands executed when a player dies.
   death-player:
-    - "eco give %player% -3"
+    - "eco take %player% 3"
 
 
 voting-menu-configuration:

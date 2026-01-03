@@ -13,12 +13,12 @@ public class Placeholder extends PlaceholderExpansion {
 
     @Override
     public @NotNull String getAuthor() {
-        return "Ruby,Ben Lordlex";
+        return "KteProject";
     }
 
     @Override
     public @NotNull String getVersion() {
-        return "2.1.0";
+        return "2.1.3";
     }
 
     @Override
