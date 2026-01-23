@@ -37,6 +37,9 @@ titles:
   deathmatch-30s:
     title: "<red><bold>⚠ FINAL WARNING!"
     subtitle: "<gray>Only <gold>30 seconds <gray>remaining!"
+  deathmatch-finish:
+    title: "<red><bold>DEATHMATCH"
+    subtitle: "<red>Time Expired: No Winner"
   finish-game:
     title: "<gold><bold>GAME OVER!"
     subtitle: "<gray>Winner: <white><winner>"
@@ -61,6 +64,9 @@ titles:
   freeze-off:
     title: "<green><bold>LAVA RESUMED!"
     subtitle: "<gray>The lava continues to rise."
+  rejoin:
+    title: "<green><bold>REJOIN"
+    subtitle: "<green>Rejoined The Game!"
 
 action-bar:
   autostart-countdown: "<yellow>Starting in <white><seconds> <gray>seconds..."

@@ -88,6 +88,10 @@ game-configurations:
   # Example: 120 = 2 minutes
   deathmatch-duration: 120
 
+  # Should the Deathmatch feature be enabled?
+  # Default: true (recommended)
+  deathmatch-enabled: true
+
 world-configurations:
   # Name of the world the game will run in.
   # If renamed, update accordingly.
@@ -118,22 +122,21 @@ autostart-configuration:
   # Countdown (in seconds) after required players are online.
   autostart-countdown: 30
 
-
 rewards-configuration:
   # Enables the reward system (commands executed on kill / win / death)
   enabled: true
 
   # Commands executed when a player kills another player.
   kill-player:
-    - "eco give %player% 5"
+    - "eco give <player> 5"
 
   # Commands executed when a player wins the game.
   win-player:
-    - "eco give %player% 3"
+    - "eco give <player> 3"
 
   # Commands executed when a player dies.
   death-player:
-    - "eco take %player% 3"
+    - "eco take <player> 3"
 
 
 voting-menu-configuration:

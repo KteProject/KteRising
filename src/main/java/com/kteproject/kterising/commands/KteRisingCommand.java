@@ -1,4 +1,5 @@
 package com.kteproject.kterising.commands;
+
 import com.kteproject.kterising.KteRising;
 import com.kteproject.kterising.game.AutoStart;
 import com.kteproject.kterising.game.Game;

@@ -27,6 +27,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import java.util.Map;
+
 public class GameListeners implements Listener {
 
     private static final int MAX_HEIGHT =
@@ -44,23 +46,35 @@ public class GameListeners implements Listener {
         spawn.getWorld().getChunkAtAsync(spawn).thenAccept(chunk -> {
             p.teleportAsync(spawn);
         });
-        if (!Game.lavarising){
-            p.setGameMode(GameMode.SURVIVAL);
-            Game.giveItems(p);
-        } else {
-            p.setGameMode(GameMode.SPECTATOR);
-        }
-
         StatsManager.load(p);
-        if(KteRising.isVotingMenuEnabled()) {
-            KteRising.getInstance().getServer().getGlobalRegionScheduler().runDelayed(
-                    KteRising.getInstance(),
-                    (ScheduledTask task) -> LobbyItems.giveLobbyItem(p.getPlayer()),
-                    5L
-            );
-        }
+        if (Game.match) {
+            if (!Game.lavarising) {
+                p.setGameMode(GameMode.SURVIVAL);
+                ChatUtil.sendTitle(
+                        p,
+                        "titles.rejoin.title",
+                        "titles.rejoin.subtitle",
+                        5, 200, 5,
+                        Map.of()
+                );
 
-        if (!Game.match){
+                if (!Game.joinedBefore.contains(p.getUniqueId())) {
+                    p.getInventory().clear();
+
+                    Game.giveItems(p);
+                }
+
+            } else {
+                p.setGameMode(GameMode.SPECTATOR);
+            }
+        } else {
+            if(KteRising.isVotingMenuEnabled() && !Game.match) {
+                KteRising.getInstance().getServer().getGlobalRegionScheduler().runDelayed(
+                        KteRising.getInstance(),
+                        (ScheduledTask task) -> LobbyItems.giveLobbyItem(p.getPlayer()),
+                        5L
+                );
+            }
             if (Bukkit.getOnlinePlayers().size() >= KteRising.getConfiguration().getInt("autostart-configuration.need-player-count")) {
                 AutoStart.startCountdown();
             } else {
@@ -80,10 +94,17 @@ public class GameListeners implements Listener {
         }
         Player p = e.getPlayer();
         StatsManager.unload(p);
-        Game.checkLive();
-        if (!Game.lavarising) return;
-        p.getInventory().clear();
-        p.setHealth(0.0);
+        if (Game.match) {
+            Game.checkLive();
+
+            if(p.getGameMode() == GameMode.SURVIVAL && !Game.lavarising){
+                Game.joinedBefore.add(p.getUniqueId());
+            }
+
+            if (!Game.lavarising) return;
+            p.getInventory().clear();
+            p.setHealth(0.0);
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

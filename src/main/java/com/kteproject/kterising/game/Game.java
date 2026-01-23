@@ -23,8 +23,10 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class Game {
     public static boolean match = false;
@@ -42,6 +44,7 @@ public class Game {
     public static boolean firstend = false;
     private static String winner = null;
     public static boolean lavaFrozen = false;
+    public static List<UUID> joinedBefore = new ArrayList<>();
 
     public static int minX;
     public static int minZ;
@@ -81,6 +84,8 @@ public class Game {
         match = false;
         seconds = 0;
 
+        LavaTask.Mtime = KteRising.getConfiguration().getInt("game-configurations.deathmatch-duration");
+        LavaTask.DM = false;
         mode = ChatUtil.getText("placeholderapi.mode-not-selected");
         placeholderlabel = mode;
 
@@ -99,6 +104,8 @@ public class Game {
 
         minZ = (int) Math.floor(wb.getCenter().getZ() - half);
         maxZ = (int) Math.ceil(wb.getCenter().getZ() + half);
+
+        joinedBefore.clear();
 
         LavaTask.resetState();
 
@@ -126,63 +133,36 @@ public class Game {
                 lives++;
             }
         }
+        if (lives != 1) return;
         checkWin();
     }
 
     public static void checkWin() {
-        if (end) return;
-        if (lives != 1) return;
-
-        winner = getWinner();
-        if (winner == null) winner = "Unknown";
-
+        if (end || !match) return;
         end = true;
-
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            ChatUtil.sendTitle(
-                    player,
-                    "titles.finish-game.title",
-                    "titles.finish-game.subtitle",
-                    5, 200, 5,
-                    Map.of("winner", winner)
-            );
-        }
-
-        if (firstend) return;
-
-        if (KteRising.getConfiguration().getBoolean("game-configurations.restart-server")) {
-            KteRising.getInstance().getServer().getGlobalRegionScheduler().runDelayed(
-                    KteRising.getInstance(),
-                    (ScheduledTask task) -> KteRising.getInstance().getServer().shutdown(),
-                    200L
-            );
-            return;
-        }
-
-        KteRising.getInstance().getServer().getGlobalRegionScheduler().runDelayed(
-                KteRising.getInstance(),
-                (ScheduledTask task) -> init(),
-                200L
-        );
-
-        firstend = true;
-    }
-
-    public static void endDraw() {
-        if (end) return;
-
-        end = true;
-
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            ChatUtil.sendTitle(
-                    player,
-                    "titles.finish-game.title",
-                    "titles.finish-game.subtitle",
-                    5, 200, 5,
-                    Map.of("winner", "DRAW")
-            );
-        }
-
+        if (LavaTask.Mtime <= 1) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                ChatUtil.sendTitle(
+                        player,
+                        "titles.deathmatch-finish.title",
+                        "titles.deathmatch-finish.subtitle",
+                        5, 200, 5,
+                        Map.of()
+                );
+            }
+        } else {
+            winner = getWinner();
+            if (winner == null) winner = "Unknown";
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    ChatUtil.sendTitle(
+                            player,
+                            "titles.finish-game.title",
+                            "titles.finish-game.subtitle",
+                            5, 200, 5,
+                            Map.of("winner", winner)
+                    );
+                }
+            }
         if (firstend) return;
 
         if (KteRising.getConfiguration().getBoolean("game-configurations.restart-server")) {

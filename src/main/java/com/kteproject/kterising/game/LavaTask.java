@@ -17,18 +17,11 @@ public class LavaTask {
 
     private static final BlockData LAVA_DATA = Bukkit.createBlockData(Material.LAVA);
     private static List<Chunk> CACHED_CHUNKS;
-
-    private static boolean deathmatchScheduled = false;
-    private static boolean deathmatchRunning = false;
-    private static ScheduledTask deathmatchTask = null;
+    private static int Dtime;
+    public static int Mtime;
+    public static boolean DM;
 
     public static void resetState() {
-        deathmatchScheduled = false;
-        deathmatchRunning = false;
-        if (deathmatchTask != null) {
-            deathmatchTask.cancel();
-            deathmatchTask = null;
-        }
         CACHED_CHUNKS = null;
     }
 
@@ -58,10 +51,6 @@ public class LavaTask {
             Game.checkLive();
             checkSpectators();
             if(Game.end) {task.cancel();return;}
-
-            if (deathmatchRunning) {
-                return;
-            }
 
             if (Game.time) {
                 Game.seconds++;
@@ -173,10 +162,9 @@ public class LavaTask {
                 );
             }
             Game.pvp = true;
-
-        } else if (Game.lava ==
-                KteRising.getConfiguration().getInt("game-configurations.lava-finish-height")-1) {
-
+        }
+        if (DM)return;
+        if (Game.lava == KteRising.getConfiguration().getInt("game-configurations.lava-finish-height")-1) {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 ChatUtil.sendTitle(
                         player,
@@ -186,101 +174,67 @@ public class LavaTask {
                         Map.of()
                 );
             }
+            Game.world.getWorldBorder().setSize(KteRising.getConfiguration().getDouble("world-configurations.area-shrinkage"), KteRising.getConfiguration().getInt("world-configurations.area-delay"));
+            DeathMatch();
 
-            double shrinkSize = KteRising.getConfiguration().getDouble("world-configurations.area-shrinkage");
-            int shrinkDelaySeconds = KteRising.getConfiguration().getInt("world-configurations.area-delay");
-
-            Game.world.getWorldBorder().setSize(shrinkSize, shrinkDelaySeconds);
-
-            scheduleDeathmatchAfterBorder(shrinkDelaySeconds);
         }
     }
-
-    private static void scheduleDeathmatchAfterBorder(int shrinkDelaySeconds) {
-        if (deathmatchScheduled || deathmatchRunning || Game.end) return;
-        deathmatchScheduled = true;
-
-        KteRising plugin = KteRising.getInstance();
-        long delayTicks = Math.max(1L, shrinkDelaySeconds * 20L);
-
-        plugin.getServer().getGlobalRegionScheduler().runDelayed(plugin, (ScheduledTask t) -> {
-            if (Game.end) return;
-
-            int dmSeconds = KteRising.getConfiguration().getInt("game-configurations.deathmatch-duration");
-            startDeathmatch(dmSeconds);
-        }, delayTicks);
-    }
-
-    private static void startDeathmatch(int seconds) {
-        if (deathmatchRunning || Game.end) return;
-        deathmatchRunning = true;
-
-        Game.time = false;
-        Game.seconds = seconds;
-
-        for (Player p : Bukkit.getOnlinePlayers()) {
-                ChatUtil.sendTitle(
-                        p,
-                        "titles.deathmatch.title",
-                        "titles.deathmatch.subtitle",
-                        5, 40, 5,
-                        Map.of("seconds", String.valueOf(seconds))
-                );
-        }
-
-        KteRising plugin = KteRising.getInstance();
-
-        deathmatchTask = plugin.getServer().getGlobalRegionScheduler().runAtFixedRate(plugin, task -> {
-            if (Game.end) {
-                task.cancel();
-                deathmatchRunning = false;
-                deathmatchTask = null;
+    private static void DeathMatch(){
+        DM = true;
+        if (!KteRising.getConfiguration().getBoolean("game-configurations.deathmatch-enabled")) return;
+        Dtime = KteRising.getConfiguration().getInt("world-configurations.area-delay");
+        KteRising.getInstance().getServer().getGlobalRegionScheduler().runAtFixedRate(KteRising.getInstance(), scheduledTask -> {
+            if (Dtime <= 0) {
+                scheduledTask.cancel();
+                StartDeathMatch();
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    ChatUtil.sendTitle(
+                            player,
+                            "titles.deathmatch.title",
+                            "titles.deathmatch.subtitle",
+                            5, 100, 5,
+                            Map.of()
+                    );
+                }
                 return;
             }
-
-            Game.seconds--;
-
-            if (Game.seconds == 30) {
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (p.getGameMode() == GameMode.SURVIVAL) {
-                    }
-                }
+            if (Game.end){
+                scheduledTask.cancel();
+                return;
             }
-
-            if (Game.seconds == 30) {
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                        ChatUtil.sendTitle(
-                                p,
-                                "titles.deathmatch-30s.title",
-                                "titles.deathmatch-30s.subtitle",
-                                5, 40, 5,
-                                Map.of()
-                        );
-                }
-            }
-
-            if (Game.seconds <= 0) {
-                Game.checkLive();
-                if (Game.lives >= 2) {
-                    killAllSurvivals();
-                    Game.endDraw();
-                }
-
-                task.cancel();
-                deathmatchRunning = false;
-                deathmatchTask = null;
-            }
-
-        }, 20L, 20L);
+            Dtime--;
+        }, 1L, 20L);
     }
 
-    private static void killAllSurvivals() {
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            if (p.getGameMode() != GameMode.SURVIVAL) continue;
-            if (p.isDead()) continue;
-            p.setHealth(0.0);
-        }
+    private static void StartDeathMatch(){
+        Mtime = KteRising.getConfiguration().getInt("game-configurations.deathmatch-duration");
+        KteRising.getInstance().getServer().getGlobalRegionScheduler().runAtFixedRate(KteRising.getInstance(), scheduledTask -> {
+            if (Mtime == 30) {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    ChatUtil.sendTitle(
+                            player,
+                            "titles.deathmatch-30s.title",
+                            "titles.deathmatch-30s.subtitle",
+                            5, 100, 5,
+                            Map.of()
+                    );
+
+                }
+
+            }
+            if (Mtime <= 0) {
+                Game.checkWin();
+                scheduledTask.cancel();
+                return;
+            }
+            if (Game.end || !Game.match){
+                scheduledTask.cancel();
+                return;
+            }
+            Mtime--;
+        }, 1L, 20L);
     }
+
 
     private static void checkSpectators() {
         Location loc = KteRising.getSpawnLocation();

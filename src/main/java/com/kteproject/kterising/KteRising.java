@@ -134,7 +134,7 @@ public final class KteRising extends JavaPlugin {
         getLogger().info("");
         getLogger().info(" _  __   _____   _____");
         getLogger().info(" / |/ /  /__ __/ Y __/   KteRising");
-        getLogger().info(" | / /     \\ |    \\      Version: 0.0.1-DEV");
+        getLogger().info(" | / /     \\ |    \\      Version: 2.1.4");
         getLogger().info(" | \\ |     | |   /_      Status: " + status);
         getLogger().info(" \\_|\\_\\    \\_/ \\____\\");
         getLogger().info("");

@@ -1,8 +1,8 @@
 name: KteRising
-version: '2.1.3'
+version: '2.1.5'
 main: com.kteproject.kterising.KteRising
 api-version: '1.20'
-authors: [ KteProject ]
+authors: [ BenLordlex,AlwaysRuby,KaanFlod,(KteProject) ]
 description: LavaRising Plugin
 dependencies:
   server:
