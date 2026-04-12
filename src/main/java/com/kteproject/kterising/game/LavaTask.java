@@ -136,7 +136,7 @@ public class LavaTask {
                 }
 
                 for (Block b : next) {
-                    b.setBlockData(LAVA_DATA, false);
+                    b.setBlockData(LAVA_DATA, true);
                 }
             }, 1L, 1L);
 

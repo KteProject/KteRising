@@ -100,7 +100,6 @@ public class VoteGui {
 
     public void open(Player player) {
         if(!KteRising.getConfiguration().getBoolean("voting-menu-configuration.enabled")){
-            ChatUtil.sendMessage(player, "");
             if(!player.isOp())return;
         }
         Gui gui = Gui.gui()

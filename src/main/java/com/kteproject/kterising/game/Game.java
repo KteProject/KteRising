@@ -114,7 +114,11 @@ public class Game {
                     KteRising.getInstance(),
                     (ScheduledTask task) -> {
                         for (Player player : Bukkit.getOnlinePlayers()) {
-                            LobbyItems.giveLobbyItem(player);
+                            if(KteRising.getConfiguration().getBoolean("voting-menu-configuration.enabled")) {
+                                LobbyItems.giveLobbyItem(player);
+                            } else {
+                                player.getInventory().clear();
+                            }
                             player.setGameMode(GameMode.SURVIVAL);
                             player.teleportAsync(KteRising.getSpawnLocation());
                         }

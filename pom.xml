@@ -6,7 +6,7 @@
 
     <groupId>KteProject</groupId>
     <artifactId>KteRising</artifactId>
-    <version>2.1.5</version>
+    <version>2.1.6</version>
     <packaging>jar</packaging>
 
     <name>KteRising2</name>

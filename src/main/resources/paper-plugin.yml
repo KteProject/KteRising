@@ -1,5 +1,5 @@
 name: KteRising
-version: '2.1.5'
+version: '2.1.6'
 main: com.kteproject.kterising.KteRising
 api-version: '1.20'
 authors: [ BenLordlex,AlwaysRuby,KaanFlod,(KteProject) ]
