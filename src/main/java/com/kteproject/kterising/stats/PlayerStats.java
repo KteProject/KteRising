@@ -1,4 +1,5 @@
 package com.kteproject.kterising.stats;
+
 import java.util.UUID;
 
 public class PlayerStats {
@@ -15,8 +16,24 @@ public class PlayerStats {
         this.name = name;
     }
 
-    public UUID getUuid() { return uuid; }
+    public UUID getUuid() {
+        return uuid;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public PlayerStats snapshot() {
+        PlayerStats copy = new PlayerStats(uuid, name);
+        copy.gamesPlayed = gamesPlayed;
+        copy.wins = wins;
+        copy.kills = kills;
+        copy.deaths = deaths;
+        return copy;
+    }
 }

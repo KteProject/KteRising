@@ -1,29 +1,60 @@
 package com.kteproject.kterising.stats;
+
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class StatsCache {
+public final class StatsCache {
 
-    private static Map<UUID, PlayerStats> cache;
+    private static final Map<UUID, PlayerStats> CACHE = new ConcurrentHashMap<>();
+
+    private StatsCache() {}
 
     public static void init() {
-        cache = new ConcurrentHashMap<>();
+        CACHE.clear();
     }
 
     public static PlayerStats get(UUID uuid) {
-        return cache.get(uuid);
+        return CACHE.get(uuid);
     }
 
     public static void put(UUID uuid, PlayerStats stats) {
-        cache.put(uuid, stats);
+        CACHE.put(uuid, stats);
     }
 
     public static void remove(UUID uuid) {
-        cache.remove(uuid);
+        CACHE.remove(uuid);
     }
 
     public static Map<UUID, PlayerStats> getAll() {
-        return cache;
+        return CACHE;
+    }
+
+    public static void recordKill(UUID uuid) {
+        PlayerStats stats = CACHE.get(uuid);
+        if (stats != null) {
+            stats.kills++;
+        }
+    }
+
+    public static void recordDeath(UUID uuid) {
+        PlayerStats stats = CACHE.get(uuid);
+        if (stats != null) {
+            stats.deaths++;
+        }
+    }
+
+    public static void recordWin(UUID uuid) {
+        PlayerStats stats = CACHE.get(uuid);
+        if (stats != null) {
+            stats.wins++;
+        }
+    }
+
+    public static void recordGamePlayed(UUID uuid) {
+        PlayerStats stats = CACHE.get(uuid);
+        if (stats != null) {
+            stats.gamesPlayed++;
+        }
     }
 }

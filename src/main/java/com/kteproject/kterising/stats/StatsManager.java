@@ -1,129 +1,148 @@
 package com.kteproject.kterising.stats;
+
 import com.kteproject.kterising.KteRising;
 import com.kteproject.kterising.database.DatabaseManager;
-import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.entity.Player;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
-public class StatsManager {
+public final class StatsManager {
+
+    private static final String UPSERT = """
+            INSERT INTO kterising_stats (uuid, name, gamesPlayed, wins, kills, deaths)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(uuid) DO UPDATE SET
+                name=excluded.name,
+                gamesPlayed=excluded.gamesPlayed,
+                wins=excluded.wins,
+                kills=excluded.kills,
+                deaths=excluded.deaths
+            """;
+
+    private static final String UPSERT_MYSQL = """
+            INSERT INTO kterising_stats (uuid, name, gamesPlayed, wins, kills, deaths)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+                name=VALUES(name),
+                gamesPlayed=VALUES(gamesPlayed),
+                wins=VALUES(wins),
+                kills=VALUES(kills),
+                deaths=VALUES(deaths)
+            """;
 
     private static KteRising plugin;
+    private static boolean mysql;
 
-    public static void init() {
-        plugin = KteRising.getInstance();
+    private StatsManager() {}
+
+    public static void init(KteRising pluginInstance) {
+        plugin = pluginInstance;
+        String type = plugin.getConfig().getString("database.type", "SQLITE");
+        mysql = type != null && type.equalsIgnoreCase("MYSQL");
 
         plugin.getServer().getAsyncScheduler().runAtFixedRate(
                 plugin,
-                (ScheduledTask task) -> saveAll(),
+                task -> saveAll(),
                 120,
                 120,
-                java.util.concurrent.TimeUnit.SECONDS
+                TimeUnit.SECONDS
         );
     }
 
-
     public static void load(Player player) {
+        if (plugin == null || !DatabaseManager.isReady()) return;
+
         UUID uuid = player.getUniqueId();
         String name = player.getName();
 
-        plugin.getServer().getAsyncScheduler().runNow(plugin, (task) -> {
+        plugin.getServer().getAsyncScheduler().runNow(plugin, task -> {
             try (Connection c = DatabaseManager.getConnection()) {
-
                 PlayerStats stats = null;
 
                 try (PreparedStatement ps = c.prepareStatement(
-                        "SELECT * FROM kterising_stats WHERE uuid=?")) {
+                        "SELECT gamesPlayed, wins, kills, deaths FROM kterising_stats WHERE uuid=?")) {
                     ps.setString(1, uuid.toString());
-                    ResultSet rs = ps.executeQuery();
-
-                    if (rs.next()) {
-                        stats = new PlayerStats(uuid, name);
-                        stats.gamesPlayed = rs.getInt("gamesPlayed");
-                        stats.wins = rs.getInt("wins");
-                        stats.kills = rs.getInt("kills");
-                        stats.deaths = rs.getInt("deaths");
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            stats = new PlayerStats(uuid, name);
+                            stats.gamesPlayed = rs.getInt("gamesPlayed");
+                            stats.wins = rs.getInt("wins");
+                            stats.kills = rs.getInt("kills");
+                            stats.deaths = rs.getInt("deaths");
+                        }
                     }
                 }
 
                 if (stats == null) {
                     stats = new PlayerStats(uuid, name);
-
                     try (PreparedStatement ps = c.prepareStatement(
-                            "INSERT INTO kterising_stats (uuid, name, gamesPlayed, wins, kills, deaths) " +
-                                    "VALUES (?, ?, ?, ?, ?, ?)")) {
-
+                            "INSERT INTO kterising_stats (uuid, name, gamesPlayed, wins, kills, deaths) VALUES (?, ?, 0, 0, 0, 0)")) {
                         ps.setString(1, uuid.toString());
                         ps.setString(2, name);
-                        ps.setInt(3, 0);
-                        ps.setInt(4, 0);
-                        ps.setInt(5, 0);
-                        ps.setInt(6, 0);
                         ps.executeUpdate();
                     }
                 }
 
                 StatsCache.put(uuid, stats);
-
             } catch (Exception ex) {
-                ex.printStackTrace();
+                plugin.getLogger().warning("Failed to load stats for " + name + ": " + ex.getMessage());
             }
         });
     }
 
-    // ASYNC SAVE
-    public static void save(PlayerStats stats) {
-        plugin.getServer().getAsyncScheduler().runNow(plugin, (task) -> {
-            try (Connection c = DatabaseManager.getConnection();
-                 PreparedStatement ps = c.prepareStatement(
-                         "UPDATE kterising_stats SET name=?, gamesPlayed=?, wins=?, kills=?, deaths=? WHERE uuid=?"
-                 )) {
+    public static void saveSnapshot(PlayerStats stats) {
+        if (plugin == null || stats == null || !DatabaseManager.isReady()) return;
 
-                ps.setString(1, stats.getName());
-                ps.setInt(2, stats.gamesPlayed);
-                ps.setInt(3, stats.wins);
-                ps.setInt(4, stats.kills);
-                ps.setInt(5, stats.deaths);
-                ps.setString(6, stats.getUuid().toString());
-                ps.executeUpdate();
-
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        });
+        PlayerStats snapshot = stats.snapshot();
+        plugin.getServer().getAsyncScheduler().runNow(plugin, task -> write(snapshot));
     }
 
-    // SYNCHRONOUS SAVE — sadece shutdown için
     public static void syncSave(PlayerStats stats) {
+        if (stats == null || !DatabaseManager.isReady()) return;
+        write(stats.snapshot());
+    }
+
+    private static void write(PlayerStats stats) {
+        String sql = mysql ? UPSERT_MYSQL : UPSERT;
         try (Connection c = DatabaseManager.getConnection();
-             PreparedStatement ps = c.prepareStatement(
-                     "UPDATE kterising_stats SET name=?, gamesPlayed=?, wins=?, kills=?, deaths=? WHERE uuid=?"
-             )) {
-
-            ps.setString(1, stats.getName());
-            ps.setInt(2, stats.gamesPlayed);
-            ps.setInt(3, stats.wins);
-            ps.setInt(4, stats.kills);
-            ps.setInt(5, stats.deaths);
-            ps.setString(6, stats.getUuid().toString());
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, stats.getUuid().toString());
+            ps.setString(2, stats.getName());
+            ps.setInt(3, stats.gamesPlayed);
+            ps.setInt(4, stats.wins);
+            ps.setInt(5, stats.kills);
+            ps.setInt(6, stats.deaths);
             ps.executeUpdate();
-
         } catch (Exception ex) {
-            ex.printStackTrace();
+            if (plugin != null) {
+                plugin.getLogger().warning("Failed to save stats for " + stats.getName() + ": " + ex.getMessage());
+            }
         }
     }
 
     public static void saveAll() {
-        for (PlayerStats stats : StatsCache.getAll().values()) {
-            save(stats);
-        }
+        List<PlayerStats> all = new ArrayList<>(StatsCache.getAll().values());
+        if (all.isEmpty() || plugin == null || !DatabaseManager.isReady()) return;
+
+        List<PlayerStats> snapshots = all.stream().map(PlayerStats::snapshot).toList();
+        plugin.getServer().getAsyncScheduler().runNow(plugin, task -> {
+            for (PlayerStats stats : snapshots) {
+                write(stats);
+            }
+        });
     }
 
     public static void unload(Player player) {
         PlayerStats stats = StatsCache.get(player.getUniqueId());
-        if (stats != null) save(stats);
+        if (stats != null) {
+            saveSnapshot(stats);
+        }
         StatsCache.remove(player.getUniqueId());
     }
 
@@ -131,5 +150,6 @@ public class StatsManager {
         for (PlayerStats stats : StatsCache.getAll().values()) {
             syncSave(stats);
         }
+        StatsCache.init();
     }
 }
