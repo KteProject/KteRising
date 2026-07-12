@@ -1,31 +1,37 @@
 package com.kteproject.kterising.game;
+
 import com.kteproject.kterising.KteRising;
 import com.kteproject.kterising.utils.ChatUtil;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+
 import java.util.Map;
 
-public class AutoStart {
+public final class AutoStart {
 
-    static ScheduledTask countdownTask;
-    private static boolean isCountdownStarted;
+    private static ScheduledTask countdownTask;
+    private static boolean countdownStarted;
     private static int countdownSeconds;
 
+    private AutoStart() {}
+
     public static void startCountdown() {
-        if (isCountdownStarted) return;
+        if (countdownStarted) return;
+
+        MatchSession session = KteRising.getMatch();
+        if (session != null && session.isMatch()) return;
 
         int neededPlayers = KteRising.getConfiguration().getInt("autostart-configuration.need-player-count");
         if (Bukkit.getOnlinePlayers().size() < neededPlayers) return;
 
-        isCountdownStarted = true;
+        countdownStarted = true;
         countdownSeconds = KteRising.getConfiguration().getInt("autostart-configuration.autostart-countdown");
 
         countdownTask = KteRising.getInstance().getServer().getGlobalRegionScheduler().runAtFixedRate(
                 KteRising.getInstance(),
                 (ScheduledTask task) -> {
                     int online = Bukkit.getOnlinePlayers().size();
-
                     if (online < neededPlayers) {
                         stopCountdown();
                         return;
@@ -37,12 +43,16 @@ public class AutoStart {
                         ChatUtil.sendActionBar(
                                 p,
                                 "action-bar.autostart-countdown",
-                                Map.of("seconds", String.valueOf(countdownSeconds)));
+                                Map.of("seconds", String.valueOf(countdownSeconds))
+                        );
                     }
 
                     if (countdownSeconds <= 0) {
                         stopCountdown();
-                        Game.startGame();
+                        MatchSession match = KteRising.getMatch();
+                        if (match != null) {
+                            match.startGame();
+                        }
                     }
                 },
                 1,
@@ -55,7 +65,6 @@ public class AutoStart {
             countdownTask.cancel();
             countdownTask = null;
         }
-        isCountdownStarted = false;
+        countdownStarted = false;
     }
-
 }
