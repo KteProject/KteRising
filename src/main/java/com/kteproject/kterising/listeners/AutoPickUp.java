@@ -1,6 +1,7 @@
 package com.kteproject.kterising.listeners;
+
 import com.kteproject.kterising.KteRising;
-import com.kteproject.kterising.game.Game;
+import com.kteproject.kterising.game.MatchSession;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -10,6 +11,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -22,17 +24,20 @@ public class AutoPickUp implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onBreak(BlockBreakEvent e) {
         Player p = e.getPlayer();
-        if(p.getGameMode() == GameMode.CREATIVE)return;
-        if (!Game.match && !p.isOp()) {
+        if (p.getGameMode() == GameMode.CREATIVE) return;
+
+        MatchSession session = KteRising.getMatch();
+        if ((session == null || !session.isMatch()) && !p.isOp()) {
             e.setCancelled(true);
             return;
         }
-        if(!KteRising.getConfiguration().getBoolean("game-configurations.auto-pickup"))return;
+
+        if (!KteRising.getConfiguration().getBoolean("game-configurations.auto-pickup")) return;
+
         Block block = e.getBlock();
         e.setDropItems(false);
 
-        Collection<ItemStack> drops = block.getDrops(p.getInventory().getItemInMainHand());
-        drops = autoSmeltDrops(drops);
+        Collection<ItemStack> drops = autoSmeltDrops(block.getDrops(p.getInventory().getItemInMainHand()));
         for (ItemStack drop : drops) {
             HashMap<Integer, ItemStack> leftover = p.getInventory().addItem(drop);
             if (!leftover.isEmpty()) {
@@ -46,11 +51,15 @@ public class AutoPickUp implements Listener {
         for (ItemStack item : drops) {
             Material type = item.getType();
             switch (type) {
-                case RAW_IRON,IRON_ORE,DEEPSLATE_IRON_ORE -> newDrops.add(new ItemStack(Material.IRON_INGOT, item.getAmount()));
-                case RAW_GOLD,GOLD_ORE,DEEPSLATE_GOLD_ORE -> newDrops.add(new ItemStack(Material.GOLD_INGOT, item.getAmount()));
-                case RAW_COPPER,COPPER_ORE,DEEPSLATE_COPPER_ORE -> newDrops.add(new ItemStack(Material.COPPER_INGOT, item.getAmount()));
+                case RAW_IRON, IRON_ORE, DEEPSLATE_IRON_ORE ->
+                        newDrops.add(new ItemStack(Material.IRON_INGOT, item.getAmount()));
+                case RAW_GOLD, GOLD_ORE, DEEPSLATE_GOLD_ORE ->
+                        newDrops.add(new ItemStack(Material.GOLD_INGOT, item.getAmount()));
+                case RAW_COPPER, COPPER_ORE, DEEPSLATE_COPPER_ORE ->
+                        newDrops.add(new ItemStack(Material.COPPER_INGOT, item.getAmount()));
                 default -> newDrops.add(item);
             }
-        }return newDrops;
+        }
+        return newDrops;
     }
 }

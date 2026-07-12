@@ -1,6 +1,7 @@
 package com.kteproject.kterising;
+
 import com.kteproject.kterising.database.DatabaseManager;
-import com.kteproject.kterising.game.Game;
+import com.kteproject.kterising.game.MatchSession;
 import com.kteproject.kterising.listeners.AutoPickUp;
 import com.kteproject.kterising.listeners.GameListeners;
 import com.kteproject.kterising.managers.CommandManager;
@@ -19,19 +20,23 @@ import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class KteRising extends JavaPlugin {
 
-    public static KteRising instance;
-    private static World world;
+    private static KteRising instance;
+    private World arenaWorld;
+    private Location cachedSpawn;
+    private MatchSession match;
     private VoteManager voteManager;
     private VoteGui voteGui;
-    private static Location cachedSpawn;
+    private volatile boolean ready;
 
     @Override
     public void onEnable() {
         instance = this;
+        ready = false;
 
         saveDefaultConfig();
         MessagesConfig.setup(this);
@@ -49,41 +54,46 @@ public final class KteRising extends JavaPlugin {
             new Placeholder().register();
         }
 
+        resolveArenaWorld();
+        applyWorldRules(arenaWorld);
+
         printBanner("Loading...");
 
-        Bukkit.getAsyncScheduler().runNow(this, task -> {
-            StatsCache.init();
-            DatabaseManager.init();
-            StatsManager.init();
-            ModeManager.loadModes();
-            voteGui.init();
+        getServer().getAsyncScheduler().runNow(this, task -> {
+            try {
+                StatsCache.init();
+                DatabaseManager.init(this);
+                StatsManager.init(this);
+
+                getServer().getGlobalRegionScheduler().run(this, mainTask -> {
+                    ModeManager.loadModes();
+                    voteGui.reload();
+                    match = new MatchSession(this);
+                    match.init(false);
+                    ready = true;
+
+                    for (Player player : Bukkit.getOnlinePlayers()) {
+                        StatsManager.load(player);
+                    }
+
+                    printBanner("Enabled");
+                });
+            } catch (Exception ex) {
+                getLogger().severe("Failed to initialize plugin: " + ex.getMessage());
+                ex.printStackTrace();
+                getServer().getGlobalRegionScheduler().run(this, t -> getServer().getPluginManager().disablePlugin(this));
+            }
         });
 
-        String worldName = KteRising.getConfiguration().getString("world-configurations.world-name");
-        world = Bukkit.getWorld(worldName);
-        if (world == null) {
-            Bukkit.getLogger().warning("[KteRising] World '" + worldName + "' not found. Using default world.");
-            world = Bukkit.getWorlds().get(0);
-        }
-        world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
-        world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
-        world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
-        world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
-        world.setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
-
-        Game.init();
-
-        if (getConfiguration().getBoolean("plugin-configurations.bstats-metrics")) {
+        if (getConfig().getBoolean("plugin-configurations.bstats-metrics")) {
             new Metrics(this, 21969);
         }
 
-        printBanner("Enabled");
-
-        if(getConfiguration().getBoolean("plugin-configurations.update-check")) {
+        if (getConfig().getBoolean("plugin-configurations.update-check")) {
             UpdateCheck updateCheck = new UpdateCheck(this, 112155);
             getLogger().info("Checking for updates...");
             updateCheck.isUpdateAvailable(isAvailable -> {
-                if(isAvailable) {
+                if (isAvailable) {
                     getLogger().info("");
                     getLogger().info("   WARNING!");
                     getLogger().info(" A new update for KteRising is available!");
@@ -98,15 +108,46 @@ public final class KteRising extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        ready = false;
+        if (match != null) {
+            match.shutdown();
+        }
         StatsManager.shutdown();
         DatabaseManager.shutdown();
+        ChatUtil.shutdown();
         printBanner("Disabled");
     }
 
-    public static Location getSpawnLocation() {
+    public void resolveArenaWorld() {
+        String worldName = getConfig().getString("world-configurations.world-name", "world");
+        arenaWorld = Bukkit.getWorld(worldName);
+        if (arenaWorld == null) {
+            getLogger().warning("[KteRising] World '" + worldName + "' not found. Using default world.");
+            arenaWorld = Bukkit.getWorlds().get(0);
+        }
+    }
+
+    public void applyWorldRules(World world) {
+        if (world == null) return;
+        world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
+        world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
+        world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
+        world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
+        world.setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
+    }
+
+    public World getArenaWorld() {
+        if (arenaWorld == null) {
+            resolveArenaWorld();
+        }
+        return arenaWorld;
+    }
+
+    public Location getSpawnLocation() {
         return cachedSpawn;
     }
-    public static void setSpawnLocation(Location location) {
+
+    public void setSpawnLocation(Location location) {
         cachedSpawn = location;
     }
 
@@ -118,8 +159,20 @@ public final class KteRising extends JavaPlugin {
         return voteGui;
     }
 
+    public MatchSession getMatchSession() {
+        return match;
+    }
+
+    public boolean isReady() {
+        return ready;
+    }
+
     public static KteRising getInstance() {
         return instance;
+    }
+
+    public static MatchSession getMatch() {
+        return instance == null ? null : instance.match;
     }
 
     public static FileConfiguration getConfiguration() {
@@ -134,7 +187,7 @@ public final class KteRising extends JavaPlugin {
         getLogger().info("");
         getLogger().info(" _  __   _____   _____");
         getLogger().info(" / |/ /  /__ __/ Y __/   KteRising");
-        getLogger().info(" | / /     \\ |    \\      Version: 2.1.6");
+        getLogger().info(" | / /     \\ |    \\      Version: " + getDescription().getVersion());
         getLogger().info(" | \\ |     | |   /_      Status: " + status);
         getLogger().info(" \\_|\\_\\    \\_/ \\____\\");
         getLogger().info("");
