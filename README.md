@@ -474,7 +474,7 @@ modes-configuration:
       - material: ARROW
         amount: 64
       - material: GOLDEN_APPLE
-        amount: 4
+        amount: 6
       - material: GOLDEN_CARROT
         amount: 24
 ```
