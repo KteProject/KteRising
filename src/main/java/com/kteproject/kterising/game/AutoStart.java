@@ -19,8 +19,11 @@ public final class AutoStart {
     public static void startCountdown() {
         if (countdownStarted) return;
 
+        KteRising plugin = KteRising.getInstance();
+        if (plugin == null || !plugin.isReady()) return;
+
         MatchSession session = KteRising.getMatch();
-        if (session != null && session.isMatch()) return;
+        if (session == null || session.isMatch()) return;
 
         int neededPlayers = KteRising.getConfiguration().getInt("autostart-configuration.need-player-count");
         if (Bukkit.getOnlinePlayers().size() < neededPlayers) return;

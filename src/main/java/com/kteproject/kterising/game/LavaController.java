@@ -1,7 +1,6 @@
 package com.kteproject.kterising.game;
 
 import com.kteproject.kterising.KteRising;
-import com.kteproject.kterising.utils.ChatUtil;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -75,7 +74,7 @@ public class LavaController {
 
     public void startGraceCountdown(int startSecond) {
         cancel(graceTask);
-        session.setSeconds(startSecond);
+        session.setSeconds(Math.max(0, startSecond));
         session.setCountingUp(false);
 
         graceTask = plugin.getServer().getGlobalRegionScheduler().runAtFixedRate(plugin, task -> {
@@ -93,23 +92,34 @@ public class LavaController {
                 return;
             }
 
-            session.decrementSeconds();
-            if (session.getSeconds() > 0) {
+            if (session.getSeconds() <= 0) {
+                beginLavaRise();
                 return;
             }
 
-            session.setCountingUp(true);
-            session.transitionTo(MatchPhase.LAVA);
-            cacheChunks();
-            startLava();
-
-            session.broadcastTitle(
-                    "titles.lavarising.title",
-                    "titles.lavarising.subtitle",
-                    5, 40, 5,
-                    Map.of()
-            );
+            session.decrementSeconds();
+            if (session.getSeconds() <= 0) {
+                beginLavaRise();
+            }
         }, 1L, 20L);
+    }
+
+    private void beginLavaRise() {
+        if (session.getPhase() != MatchPhase.GRACE) {
+            return;
+        }
+
+        session.setCountingUp(true);
+        session.transitionTo(MatchPhase.LAVA);
+        cacheChunks();
+        startLava();
+
+        session.broadcastTitle(
+                "titles.lavarising.title",
+                "titles.lavarising.subtitle",
+                5, 40, 5,
+                Map.of()
+        );
     }
 
     private void cacheChunks() {
@@ -317,7 +327,7 @@ public class LavaController {
             if (deathmatchRemaining <= 0) {
                 task.cancel();
                 deathmatchTask = null;
-                session.checkWin();
+                session.checkWin(true);
                 return;
             }
 

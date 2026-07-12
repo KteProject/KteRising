@@ -252,13 +252,17 @@ public class MatchSession {
     }
 
     public void checkWin() {
+        checkWin(false);
+    }
+
+    public void checkWin(boolean deathmatchTimeout) {
         if (phase == MatchPhase.ENDED || !isMatch()) return;
         transitionTo(MatchPhase.ENDED);
 
-        if (lavaController.getDeathmatchRemaining() <= 1 && lavaController.isDeathmatchActive()) {
+        String winner = resolveWinner();
+        if (deathmatchTimeout) {
             broadcastTitle("titles.deathmatch-finish.title", "titles.deathmatch-finish.subtitle", 5, 200, 5, Map.of());
         } else {
-            String winner = resolveWinner();
             if (winner == null) winner = "Unknown";
             broadcastTitle("titles.finish-game.title", "titles.finish-game.subtitle", 5, 200, 5, Map.of("winner", winner));
         }
@@ -307,6 +311,7 @@ public class MatchSession {
         }
 
         checkLive();
+        if (!isMatch()) return;
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.getInventory().clear();
@@ -322,7 +327,7 @@ public class MatchSession {
         int countdown = 0;
         var modeData = ModeManager.getMode(mode);
         if (modeData.isPresent()) {
-            countdown = modeData.get().getCountdown();
+            countdown = Math.max(0, modeData.get().getCountdown());
             placeholderLabel = modeData.get().getPlaceholderlabel();
         }
 

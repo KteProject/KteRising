@@ -1,6 +1,7 @@
 package com.kteproject.kterising;
 
 import com.kteproject.kterising.database.DatabaseManager;
+import com.kteproject.kterising.game.AutoStart;
 import com.kteproject.kterising.game.MatchSession;
 import com.kteproject.kterising.listeners.AutoPickUp;
 import com.kteproject.kterising.listeners.GameListeners;
@@ -74,8 +75,16 @@ public final class KteRising extends JavaPlugin {
 
                     for (Player player : Bukkit.getOnlinePlayers()) {
                         StatsManager.load(player);
+                        Location spawn = getSpawnLocation();
+                        if (spawn != null) {
+                            player.teleportAsync(spawn);
+                        }
+                        if (isVotingMenuEnabled()) {
+                            LobbyItems.giveLobbyItem(player);
+                        }
                     }
 
+                    AutoStart.startCountdown();
                     printBanner("Enabled");
                 });
             } catch (Exception ex) {
