@@ -1,4 +1,5 @@
 package com.kteproject.kterising.managers.vote;
+
 import com.kteproject.kterising.KteRising;
 import com.kteproject.kterising.utils.ChatUtil;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
@@ -11,21 +12,22 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.plugin.java.JavaPlugin;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class VoteGui {
 
-    private static class CachedGuiItem {
+    private static final class CachedGuiItem {
         final String modeName;
         final Component name;
         final List<String> rawDescription;
         final Material material;
         final int slot;
 
-        CachedGuiItem(String modeName, Component name,
-                      List<String> rawDescription,
-                      Material material,
-                      int slot) {
+        CachedGuiItem(String modeName, Component name, List<String> rawDescription, Material material, int slot) {
             this.modeName = modeName;
             this.name = name;
             this.rawDescription = rawDescription;
@@ -34,91 +36,77 @@ public class VoteGui {
         }
     }
 
-    private static final Map<String, CachedGuiItem> CACHED_ITEMS = new HashMap<>();
-
     private final JavaPlugin plugin;
     private final VoteManager voteManager;
-
-    private static final Component TITLE = MiniMessage.miniMessage()
-            .deserialize(KteRising.getConfiguration().getString("voting-menu-configuration.gui-title"));
-
-    private static final int GUI_ROWS =
-            KteRising.getConfiguration().getInt("voting-menu-configuration.gui-row", 3);
-
+    private final Map<String, CachedGuiItem> cachedItems = new HashMap<>();
+    private Component title;
+    private int guiRows;
 
     public VoteGui(JavaPlugin plugin, VoteManager voteManager) {
         this.plugin = plugin;
         this.voteManager = voteManager;
     }
 
-    public void init() {
-        if (!CACHED_ITEMS.isEmpty()) return;
+    public void reload() {
+        cachedItems.clear();
+        title = MiniMessage.miniMessage().deserialize(
+                KteRising.getConfiguration().getString("voting-menu-configuration.gui-title", "<black>Vote")
+        );
+        guiRows = KteRising.getConfiguration().getInt("voting-menu-configuration.gui-row", 3);
 
         ConfigurationSection modesSection =
                 KteRising.getConfiguration().getConfigurationSection("modes-configuration");
-
         if (modesSection == null) {
             plugin.getLogger().warning("No voting modes found in configuration!");
             return;
         }
-
         buildCache(modesSection);
     }
 
+    public void init() {
+        reload();
+    }
 
     private void buildCache(ConfigurationSection section) {
-
         for (String modeName : section.getKeys(false)) {
-
             ConfigurationSection cfg = section.getConfigurationSection(modeName);
             if (cfg == null) continue;
-
             if (!cfg.getBoolean("enabled", false)) continue;
 
             String label = cfg.getString("label", "<red>ERROR");
             List<String> desc = cfg.getStringList("description");
             int slot = cfg.getInt("gui-slot", -1);
-            Material m = Material.getMaterial(cfg.getString("gui-item", "BARRIER"));
+            Material material = Material.getMaterial(cfg.getString("gui-item", "BARRIER"));
 
-            if (slot == -1 || m == null) {
+            if (slot == -1 || material == null) {
                 plugin.getLogger().warning("GUI item for mode " + modeName + " is invalid.");
                 continue;
             }
 
             Component name = MiniMessage.miniMessage().deserialize("<!i>" + label);
-
-            CACHED_ITEMS.put(modeName, new CachedGuiItem(
-                    modeName,
-                    name,
-                    desc,
-                    m,
-                    slot
-            ));
+            cachedItems.put(modeName, new CachedGuiItem(modeName, name, desc, material, slot));
         }
     }
 
-
     public void open(Player player) {
-        if(!KteRising.getConfiguration().getBoolean("voting-menu-configuration.enabled")){
-            if(!player.isOp())return;
+        if (!KteRising.getConfiguration().getBoolean("voting-menu-configuration.enabled") && !player.isOp()) {
+            return;
         }
+
         Gui gui = Gui.gui()
-                .title(TITLE)
-                .rows(GUI_ROWS)
+                .title(title != null ? title : Component.text("Vote"))
+                .rows(guiRows)
                 .disableAllInteractions()
                 .create();
 
-        for (CachedGuiItem cached : CACHED_ITEMS.values()) {
-
+        for (CachedGuiItem cached : cachedItems.values()) {
             int votes = voteManager.getVotesForMode(cached.modeName);
-
             List<Component> lore = new ArrayList<>();
             for (String s : cached.rawDescription) {
                 lore.add(MiniMessage.miniMessage().deserialize(
                         "<!i>" + s.replace("<vote>", String.valueOf(votes))
                 ));
             }
-
 
             GuiItem item = ItemBuilder.from(cached.material)
                     .name(cached.name)
@@ -131,9 +119,7 @@ public class VoteGui {
                             ItemFlag.HIDE_PLACED_ON
                     )
                     .asGuiItem(event -> {
-
                         boolean voted = voteManager.vote(player.getUniqueId(), cached.modeName);
-
                         if (voted) {
                             ChatUtil.sendMessage(player, "vote.vote", Map.of("mode", cached.modeName));
                             open(player);
